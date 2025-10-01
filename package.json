@@ -1,0 +1,39 @@
+{
+  "name": "artcontract",
+  "version": "1.0.0",
+  "description": "예술가를 위한 계약서 자동 생성 웹앱",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "artist",
+    "contract",
+    "ai",
+    "freelance"
+  ],
+  "author": "ArtContract Team",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^24.6.1",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "lucide-react": "^0.544.0",
+    "next": "^14.2.33",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.33",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17"
+  }
+}
