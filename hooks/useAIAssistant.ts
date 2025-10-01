@@ -22,7 +22,12 @@ export function useAIAssistant() {
   }, []);
 
   const sendMessage = useCallback(
-    async (content: string, formData: ContractFormData, currentStep: number) => {
+    async (
+      content: string,
+      formData: ContractFormData,
+      currentStep: number,
+      onFormUpdate?: (updates: Partial<ContractFormData>) => void
+    ) => {
       // 사용자 메시지 추가
       const userMessage: AIMessage = {
         id: `msg_${Date.now()}`,
@@ -66,6 +71,11 @@ export function useAIAssistant() {
           };
 
           setMessages((prev) => [...prev, assistantMessage]);
+
+          // AI가 제안한 폼 업데이트가 있으면 자동 적용
+          if (data.data.formUpdates && onFormUpdate) {
+            onFormUpdate(data.data.formUpdates);
+          }
         } else {
           throw new Error(data.error?.message || '응답 실패');
         }

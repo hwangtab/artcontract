@@ -28,11 +28,15 @@ export default function Step02WorkDetail({
   const [analysisResult, setAnalysisResult] = useState<WorkAnalysis | null>(aiAnalysis || null);
   const [showQuickOptions, setShowQuickOptions] = useState(false);
 
-  const quickExamples = {
+  const quickExamples: Record<ArtField, string[]> = {
     design: ['카페 로고 디자인', '웨딩 초대장 디자인', 'SNS 홍보 이미지', '명함 디자인'],
     photography: ['프로필 사진 촬영', '제품 촬영', '웨딩 스냅', '행사 사진'],
+    video: ['유튜브 영상 편집', '제품 홍보 영상', '웨딩 영상', '모션그래픽 제작'],
     writing: ['블로그 포스팅', '광고 카피', 'SNS 콘텐츠', '보도자료 작성'],
     music: ['카페 배경음악', '유튜브 인트로 음악', '광고 배경음악', '게임 BGM'],
+    voice: ['광고 내레이션', '유튜브 영상 성우', '오디오북 녹음', '캐릭터 더빙'],
+    translation: ['웹사이트 한영 번역', '영상 자막 번역', '제품 설명서 번역', '문서 통번역'],
+    other: ['작업 내용을 자유롭게 입력하세요'],
   };
 
   const handleAIAnalysis = async () => {
@@ -72,11 +76,15 @@ export default function Step02WorkDetail({
     setShowQuickOptions(false);
   };
 
-  const fieldLabels = {
+  const fieldLabels: Record<ArtField, string> = {
     design: '그림/디자인',
-    photography: '사진/영상',
+    photography: '사진',
+    video: '영상',
     writing: '글쓰기',
     music: '음악',
+    voice: '성우/더빙',
+    translation: '번역',
+    other: '기타',
   };
 
   return (

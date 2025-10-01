@@ -69,6 +69,7 @@ export interface AIResponse {
   message: string;
   actionButtons?: ActionButton[];
   suggestedValues?: Record<string, any>;
+  formUpdates?: Partial<ContractFormData>;  // AI가 추천하는 폼 데이터 자동 입력
   warnings?: string[];
   confidence?: number;
 }

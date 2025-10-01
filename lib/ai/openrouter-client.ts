@@ -136,7 +136,7 @@ export class OpenRouterClient {
       formData: any;
       conversationHistory: Array<{ role: string; content: string }>;
     }
-  ): Promise<string> {
+  ): Promise<{ message: string; formUpdates?: any }> {
     const systemPrompt = `당신은 예술가들의 계약서 작성을 돕는 친절한 AI 도우미입니다.
 
 정체성:
@@ -150,6 +150,7 @@ export class OpenRouterClient {
 3. 위험한 조건에 대해 경고
 4. 구체적이고 실용적인 조언 제공
 5. 사용자의 감정을 이해하고 격려
+6. 사용자가 말한 정보를 자동으로 폼에 채울 수 있도록 추출
 
 말투 가이드:
 ✅ 해요체: "~해요", "~이에요"
@@ -163,7 +164,26 @@ export class OpenRouterClient {
 - 단계: ${context.currentStep}/8
 - 입력된 정보: ${JSON.stringify(context.formData, null, 2)}
 
-위 정보를 바탕으로 사용자를 도와주세요. 답변은 200자 이내로 간결하게 작성하세요.`;
+**중요: 응답 형식**
+사용자의 메시지에서 계약 정보를 추출할 수 있다면, 다음 JSON 형식으로 응답하세요:
+
+\`\`\`json
+{
+  "message": "사용자에게 보여줄 답변 (200자 이내)",
+  "formUpdates": {
+    "field": "design",  // 작업 분야
+    "subField": "웹툰",  // 세부 장르
+    "clientName": "홍길동",  // 클라이언트 이름
+    "payment": {"amount": 500000},  // 금액
+    "timeline": {"deadline": "2025-12-31"}  // 마감일
+    // 등등... 추출 가능한 정보만 포함
+  }
+}
+\`\`\`
+
+추출할 수 없으면 일반 텍스트로 답변하세요.
+
+위 정보를 바탕으로 사용자를 도와주세요.`;
 
     const messages: OpenRouterMessage[] = [
       { role: 'system', content: systemPrompt },
@@ -174,7 +194,24 @@ export class OpenRouterClient {
       { role: 'user', content: userMessage },
     ];
 
-    return await this.chat(messages, { temperature: 0.8 });
+    const response = await this.chat(messages, { temperature: 0.8 });
+
+    // JSON 형식 응답 파싱 시도
+    try {
+      const jsonMatch = response.match(/```json\s*\n?([\s\S]*?)\n?```/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[1]);
+        return {
+          message: parsed.message,
+          formUpdates: parsed.formUpdates,
+        };
+      }
+    } catch (error) {
+      // JSON 파싱 실패 시 일반 텍스트로 처리
+    }
+
+    // 일반 텍스트 응답
+    return { message: response };
   }
 }
 

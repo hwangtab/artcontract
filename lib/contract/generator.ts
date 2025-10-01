@@ -34,10 +34,22 @@ export function generateContract(
   content += `---\n\n`;
   content += `## 서명\n\n`;
   content += `**갑 (클라이언트)**\n`;
-  content += `성명: ______________ (인)\n`;
+  content += `성명: ${formData.clientName || '______________'} (인)\n`;
+  if (formData.clientContact) {
+    content += `연락처: ${formData.clientContact}\n`;
+  }
   content += `날짜: ______________\n\n`;
   content += `**을 (예술가)**\n`;
-  content += `성명: ______________ (인)\n`;
+  content += `성명: ${formData.artistName || '______________'} (인)\n`;
+  if (formData.artistContact) {
+    content += `연락처: ${formData.artistContact}\n`;
+  }
+  if (formData.artistIdNumber) {
+    content += `주민등록번호(뒷자리) 또는 사업자번호: ${formData.artistIdNumber}\n`;
+  }
+  if (formData.artistAddress) {
+    content += `주소: ${formData.artistAddress}\n`;
+  }
   content += `날짜: ______________\n\n`;
 
   return {
@@ -58,9 +70,11 @@ function replaceVariables(template: string, data: ContractFormData): string {
   result = result.replace(/{client_name}/g, data.clientName || '[클라이언트 이름 미정]');
   result = result.replace(/{client_contact}/g, data.clientContact || '[연락처 미정]');
 
-  // 예술가 정보 (나중에 프로필에서)
-  result = result.replace(/{artist_name}/g, '[예술가 이름]');
-  result = result.replace(/{artist_contact}/g, '[예술가 연락처]');
+  // 예술가 정보 (Step 0에서 입력받음)
+  result = result.replace(/{artist_name}/g, data.artistName || '[예술가 이름 미정]');
+  result = result.replace(/{artist_contact}/g, data.artistContact || '[예술가 연락처 미정]');
+  result = result.replace(/{artist_id}/g, data.artistIdNumber || '[미정]');
+  result = result.replace(/{artist_address}/g, data.artistAddress || '[미정]');
 
   // 작업 내용
   result = result.replace(/{work_type}/g, data.workType || data.workDescription || '[작업 내용 미정]');

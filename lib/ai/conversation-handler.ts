@@ -30,7 +30,8 @@ export async function handleConversation(
     });
 
     return {
-      message: response,
+      message: response.message,
+      formUpdates: response.formUpdates,
       confidence: 0.8,
     };
   } catch (error) {

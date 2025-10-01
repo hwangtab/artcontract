@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useWizard } from '@/hooks/useWizard';
 import { useAIAssistant } from '@/hooks/useAIAssistant';
 import Button from '../shared/Button';
+import Step00ArtistInfo from './steps/Step00ArtistInfo';
 import Step01FieldSelection from './steps/Step01FieldSelection';
 import Step02WorkDetail from './steps/Step02WorkDetail';
 import Step03ClientType from './steps/Step03ClientType';
@@ -43,10 +44,12 @@ export default function WizardContainer() {
   } = useAIAssistant();
 
   const [generatedContract, setGeneratedContract] = useState<GeneratedContract | null>(null);
+  const [shownWarnings, setShownWarnings] = useState<Set<string>>(new Set());
 
   // 프로액티브 메시지: 각 단계 진입 시 팁 제공
   useEffect(() => {
     const stepTips: { [key: number]: string } = {
+      0: '👤 안녕하세요! 먼저 작가님의 정보를 입력해주세요. 계약서의 "을"이 됩니다.',
       1: '💡 작업 분야를 선택하시면 맞춤형 계약서 템플릿을 제공해드려요!',
       2: '🎨 작업 내용을 자세히 설명할수록 AI가 정확한 금액과 조건을 추천할 수 있어요.',
       3: '👥 클라이언트가 개인인지, 소상공인인지, 기업인지에 따라 계약 조건이 달라져요.',
@@ -64,29 +67,39 @@ export default function WizardContainer() {
     }
   }, [currentStep, addProactiveMessage, messages.length]);
 
-  // 위험 조건 자동 감지
+  // 위험 조건 자동 감지 (중복 방지)
   useEffect(() => {
     // 금액 위험 감지
     if (formData.payment?.amount !== undefined) {
-      if (formData.payment.amount === 0) {
-        addProactiveMessage('⚠️ 위험! 금액이 0원으로 설정되었어요. 무료로 작업하시는 건가요? 최소한 작업 비용은 받으셔야 해요!', 'danger');
-      } else if (formData.payment.amount > 0 && formData.payment.amount < 50000) {
-        addProactiveMessage('💡 금액이 너무 낮은 것 같아요. 시간과 노력을 고려하면 최소 5만원 이상 받으시는 걸 추천해요.', 'warning');
-      } else if (formData.payment.amount >= 1000000) {
-        addProactiveMessage('💼 100만원 이상 고액 계약이에요! 법률 전문가의 검토를 받는 것을 강력히 추천드려요.', 'warning');
+      const warningId = `payment_${formData.payment.amount}`;
+
+      if (!shownWarnings.has(warningId)) {
+        if (formData.payment.amount === 0) {
+          addProactiveMessage('⚠️ 위험! 금액이 0원으로 설정되었어요. 무료로 작업하시는 건가요? 최소한 작업 비용은 받으셔야 해요!', 'danger');
+        } else if (formData.payment.amount > 0 && formData.payment.amount < 50000) {
+          addProactiveMessage('💡 금액이 너무 낮은 것 같아요. 시간과 노력을 고려하면 최소 5만원 이상 받으시는 걸 추천해요.', 'warning');
+        } else if (formData.payment.amount >= 1000000) {
+          addProactiveMessage('💼 100만원 이상 고액 계약이에요! 법률 전문가의 검토를 받는 것을 강력히 추천드려요.', 'warning');
+        }
+        setShownWarnings(prev => new Set(prev).add(warningId));
       }
     }
 
     // 수정 횟수 위험 감지
     if (formData.revisions !== undefined && formData.revisions !== null) {
-      if (typeof formData.revisions === 'number') {
-        if (formData.revisions === 0) {
-          addProactiveMessage('⚠️ 수정 0회는 너무 위험해요! 클라이언트가 결과물에 불만이 있어도 수정할 수 없다는 뜻이에요. 최소 1-2회는 보장하세요.', 'danger');
-        } else if (formData.revisions >= 10) {
-          addProactiveMessage('⚠️ 위험! 수정 횟수가 너무 많아요. 무제한 작업에 빠질 수 있어요. 2-3회가 적당하고, 추가 수정비를 명시하세요!', 'danger');
+      const revisionId = `revisions_${formData.revisions}`;
+
+      if (!shownWarnings.has(revisionId)) {
+        if (typeof formData.revisions === 'number') {
+          if (formData.revisions === 0) {
+            addProactiveMessage('⚠️ 수정 0회는 너무 위험해요! 클라이언트가 결과물에 불만이 있어도 수정할 수 없다는 뜻이에요. 최소 1-2회는 보장하세요.', 'danger');
+          } else if (formData.revisions >= 10) {
+            addProactiveMessage('⚠️ 위험! 수정 횟수가 너무 많아요. 무제한 작업에 빠질 수 있어요. 2-3회가 적당하고, 추가 수정비를 명시하세요!', 'danger');
+          }
+        } else if (formData.revisions === 'unlimited') {
+          addProactiveMessage('🚨 무제한 수정은 절대 금물! 끝없는 수정 요청에 시달릴 수 있어요. 반드시 횟수를 정하세요!', 'danger');
         }
-      } else if (formData.revisions === 'unlimited') {
-        addProactiveMessage('🚨 무제한 수정은 절대 금물! 끝없는 수정 요청에 시달릴 수 있어요. 반드시 횟수를 정하세요!', 'danger');
+        setShownWarnings(prev => new Set(prev).add(revisionId));
       }
     }
 
@@ -95,30 +108,41 @@ export default function WizardContainer() {
       const deadline = new Date(formData.timeline.deadline);
       const today = new Date();
       const daysUntilDeadline = Math.floor((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      const deadlineId = `deadline_${daysUntilDeadline}`;
 
-      if (daysUntilDeadline <= 1) {
-        addProactiveMessage('🚨 급함! 마감일이 오늘 또는 내일이에요. 이렇게 촉박한 일정이면 러시 추가 요금(50-100%)을 반드시 받으세요!', 'danger');
-      } else if (daysUntilDeadline <= 3) {
-        addProactiveMessage('⚠️ 마감일이 3일 이내예요. 촉박한 일정이면 러시 요금을 청구하는 걸 추천드려요.', 'warning');
+      if (!shownWarnings.has(deadlineId)) {
+        if (daysUntilDeadline <= 1) {
+          addProactiveMessage('🚨 급함! 마감일이 오늘 또는 내일이에요. 이렇게 촉박한 일정이면 러시 추가 요금(50-100%)을 반드시 받으세요!', 'danger');
+          setShownWarnings(prev => new Set(prev).add(deadlineId));
+        } else if (daysUntilDeadline <= 3) {
+          addProactiveMessage('⚠️ 마감일이 3일 이내예요. 촉박한 일정이면 러시 요금을 청구하는 걸 추천드려요.', 'warning');
+          setShownWarnings(prev => new Set(prev).add(deadlineId));
+        }
       }
     }
 
     // 상업적 사용 경고
     if (formData.commercialUse && formData.payment?.amount) {
+      const commercialId = `commercial_${formData.payment.amount}`;
       const suggestedMin = formData.aiAnalysis?.suggestedPriceRange?.min || 0;
-      if (formData.payment.amount < suggestedMin * 1.5) {
+
+      if (!shownWarnings.has(commercialId) && formData.payment.amount < suggestedMin * 1.5) {
         addProactiveMessage('💼 상업적 사용 계약이에요! 개인 사용보다 최소 2배 이상 받으셔야 공정해요.', 'warning');
+        setShownWarnings(prev => new Set(prev).add(commercialId));
       }
     }
 
     // 독점권 경고
     if (formData.exclusiveRights && formData.payment?.amount) {
+      const exclusiveId = `exclusive_${formData.payment.amount}`;
       const suggestedMin = formData.aiAnalysis?.suggestedPriceRange?.min || 0;
-      if (formData.payment.amount < suggestedMin * 2) {
+
+      if (!shownWarnings.has(exclusiveId) && formData.payment.amount < suggestedMin * 2) {
         addProactiveMessage('🔒 독점권 계약이에요! 일반 계약보다 3-5배 높게 받으셔야 해요. 다른 곳에서 못 쓰는 만큼 보상받으세요!', 'danger');
+        setShownWarnings(prev => new Set(prev).add(exclusiveId));
       }
     }
-  }, [formData, addProactiveMessage]);
+  }, [formData, addProactiveMessage, shownWarnings]);
 
   const handleGenerateContract = async () => {
     // 템플릿 가져오기
@@ -141,16 +165,28 @@ export default function WizardContainer() {
   };
 
   const handleSendMessage = (message: string) => {
-    sendMessage(message, formData, currentStep);
+    sendMessage(message, formData, currentStep, updateFormData);
   };
 
   const renderStep = () => {
     switch (currentStep) {
+      case 0:
+        return (
+          <Step00ArtistInfo
+            artistName={formData.artistName}
+            artistContact={formData.artistContact}
+            artistIdNumber={formData.artistIdNumber}
+            artistAddress={formData.artistAddress}
+            onUpdate={(data) => updateFormData(data)}
+          />
+        );
       case 1:
         return (
           <Step01FieldSelection
             selectedField={formData.field}
+            subField={formData.subField}
             onSelect={(field) => updateFormData({ field })}
+            onSubFieldChange={(subField) => updateFormData({ subField })}
           />
         );
       case 2:

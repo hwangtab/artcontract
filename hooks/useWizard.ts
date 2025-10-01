@@ -5,10 +5,10 @@ import { ContractFormData } from '@/types/contract';
 import { WizardState } from '@/types/wizard';
 import { calculateCompleteness, assessRiskLevel, generateWarnings } from '@/lib/contract/validator';
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;  // Step0 추가로 9개
 
 const initialFormData: ContractFormData = {
-  currentStep: 1,
+  currentStep: 0,  // Step0부터 시작
   completeness: 0,
   riskLevel: 'low',
   warnings: [],
@@ -19,13 +19,13 @@ const initialFormData: ContractFormData = {
 
 export function useWizard() {
   const [state, setState] = useState<WizardState>({
-    currentStep: 1,
+    currentStep: 0,  // Step0부터 시작
     formData: initialFormData,
     isComplete: false,
-    canGoNext: true,
+    canGoNext: false,  // 작가 정보 입력 전까지 진행 불가
     canGoPrev: false,
     completeness: 0,
-    visitedSteps: [1],
+    visitedSteps: [0],  // Step0부터
   });
 
   // 폼 데이터 업데이트

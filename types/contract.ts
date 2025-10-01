@@ -1,5 +1,5 @@
 // 예술 분야
-export type ArtField = 'design' | 'photography' | 'writing' | 'music';
+export type ArtField = 'design' | 'photography' | 'writing' | 'music' | 'video' | 'voice' | 'translation' | 'other';
 
 // 클라이언트 유형
 export type ClientType = 'individual' | 'small_business' | 'enterprise' | 'unknown';
@@ -15,15 +15,22 @@ export type Complexity = 'simple' | 'medium' | 'complex';
 
 // 계약서 폼 데이터
 export interface ContractFormData {
+  // Step 0: 작가 정보 (을)
+  artistName?: string;
+  artistContact?: string;
+  artistIdNumber?: string;  // 주민번호 뒷자리 또는 사업자번호
+  artistAddress?: string;
+
   // Step 1: 작업 분야
   field?: ArtField;
+  subField?: string;  // 세부 장르
 
   // Step 2: 작업 상세
   workType?: string;
   workDescription?: string;
   aiAnalysis?: WorkAnalysis;
 
-  // Step 3: 클라이언트 정보
+  // Step 3: 클라이언트 정보 (갑)
   clientType?: ClientType;
   clientName?: string;
   clientContact?: string;
