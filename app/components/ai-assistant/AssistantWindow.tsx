@@ -47,7 +47,7 @@ export default function AssistantWindow({
           💬 AI 도우미
         </h3>
         <p className="text-sm text-primary-100 mt-1">
-          궁금한 게 있으면 물어보세요!
+          대화하면 자동으로 폼이 채워져요! ✨
         </p>
       </div>
 
