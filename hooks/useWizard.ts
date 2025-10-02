@@ -138,6 +138,52 @@ export function useWizard() {
     });
   }, []);
 
+  // canGoNext 동적 업데이트
+  useEffect(() => {
+    setState((prev) => {
+      let canGoNext = false;
+
+      switch (prev.currentStep) {
+        case 0: // Step0: 작가 정보
+          canGoNext = !!(prev.formData.artistName && prev.formData.artistContact);
+          break;
+        case 1: // Step1: 작업 분야
+          canGoNext = !!prev.formData.field;
+          break;
+        case 2: // Step2: 작업 상세
+          canGoNext = !!prev.formData.workDescription;
+          break;
+        case 3: // Step3: 클라이언트 정보
+          canGoNext = !!prev.formData.clientName;
+          break;
+        case 4: // Step4: 일정
+          canGoNext = !!prev.formData.timeline?.deadline;
+          break;
+        case 5: // Step5: 금액
+          canGoNext = !!(prev.formData.payment?.amount && prev.formData.payment.amount > 0);
+          break;
+        case 6: // Step6: 수정 횟수
+          canGoNext = prev.formData.revisions !== null && prev.formData.revisions !== undefined;
+          break;
+        case 7: // Step7: 사용 범위
+          canGoNext = !!(prev.formData.usageScope && prev.formData.usageScope.length > 0);
+          break;
+        case 8: // Step8: 최종 확인
+          canGoNext = true;
+          break;
+        default:
+          canGoNext = false;
+      }
+
+      if (prev.canGoNext === canGoNext) return prev;
+
+      return {
+        ...prev,
+        canGoNext,
+      };
+    });
+  }, [state.currentStep, state.formData]);
+
   return {
     currentStep: state.currentStep,
     formData: state.formData,
