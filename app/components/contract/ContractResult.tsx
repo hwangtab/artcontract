@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { GeneratedContract } from '@/types/contract';
 import Button from '../shared/Button';
 import Toast from '../shared/Toast';
@@ -72,10 +74,10 @@ export default function ContractResult({ contract, onEdit }: ContractResultProps
 
         {/* Contract Content */}
         <div className="bg-white rounded-2xl shadow-sm p-8 mb-6">
-          <div className="prose prose-sm max-w-none">
-            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-gray-800">
+          <div className="prose prose-sm max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h1:mb-4 prose-h2:text-xl prose-h2:mt-6 prose-h2:mb-3 prose-p:text-gray-700 prose-p:leading-relaxed prose-strong:text-gray-900">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {contract.content}
-            </pre>
+            </ReactMarkdown>
           </div>
         </div>
 
