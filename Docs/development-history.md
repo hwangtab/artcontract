@@ -533,57 +533,180 @@ Total Files: 50+
 
 ---
 
-## 🔮 향후 개발 로드맵
+## 🔮 개발 로드맵 (최신)
 
-### Phase 6: Validation 로직 통합 (우선순위: High)
+### ✅ 완료된 Phase
 
-**목표**: validator.ts 제거, risk-detector.ts 단일화
+#### Phase 0-4: 기본 시스템 구축 (2025-09 ~ 2025-10)
+- ✅ 프로젝트 기획 및 설계
+- ✅ 8→11단계 위저드 시스템
+- ✅ AI 통합 (Step02 분석 → 전체 단계 활용)
+- ✅ 프로액티브 메시지 시스템
+- ✅ 위험 감지 자동화
+
+#### Phase 5: API 보안 강화 (2025-10-02)
+- ✅ Rate Limiting 구현 (LRU Cache)
+- ✅ IP별 분당 10회 제한
+- ✅ Step04 AI 통합 완성
+- ✅ Gemini Critical Issue #1 해결
+
+#### Phase 6: Validation 로직 통합 (2025-10-02)
+- ✅ validator.ts 제거 (228줄 삭제)
+- ✅ risk-detector.ts 단일화
+- ✅ 경고 메시지 중복 제거
+- ✅ Gemini Critical Issue #2 해결
+
+### ⏭️ 스킵된 Phase
+
+#### Phase 7: 템플릿 외부화 (스킵)
+- ⏭️ 현재 구조로 충분 (YAGNI 원칙)
+- ⏭️ 우선순위 재조정 (테스트 > 템플릿)
+- ⏭️ 향후 필요 시 재검토
+
+### 🎯 진행 예정 Phase
+
+---
+
+### Phase 5-6 완료: 보안 강화 및 코드 품질 개선 (2025-10-02)
+
+#### Phase 5: API Rate Limiting 및 AI 통합 완성
+
+**커밋**: `10a9aa8` - feat: API Rate Limiting 및 Step04 AI 통합 추가
+
+**구현 내용**:
+
+1. **Rate Limiter 유틸리티** (`lib/utils/rate-limiter.ts`)
+   - LRU Cache 기반 토큰 버킷 알고리즘
+   - IP별 분당 10회 제한 (AI API용)
+   - 자동 TTL로 메모리 효율적 관리
+   - `getClientIp()` 헬퍼 (Vercel Edge Functions 호환)
+
+2. **API 엔드포인트 보호**
+   - `/api/analyze-work`: Rate limiting 적용
+   - `/api/chat`: Rate limiting 적용
+   - 429 상태코드 + Retry-After 헤더 제공
+   - X-RateLimit-* 헤더로 클라이언트에 제한 정보 제공
+
+3. **Step04 AI 통합**
+   - AI 추천 마감일 기능 추가
+   - `aiAnalysis.estimatedDays` 기반 자동 계산
+   - Step06, Step10과 동일한 UX 패턴 적용
+
+**효과**:
+- ✅ OpenRouter API 비용 폭증 방지
+- ✅ DDoS/API 남용 공격 방어
+- ✅ 사용자 경험 개선 (모든 단계 AI 활용)
+- ✅ Gemini Critical Issue #1 해결
+
+**코드 예시**:
+```typescript
+// Rate Limiting 적용
+const clientIp = getClientIp(request);
+const rateLimitResult = aiRateLimiter.check(clientIp);
+
+if (!rateLimitResult.success) {
+  return NextResponse.json(
+    { error: { code: 'RATE_LIMIT_EXCEEDED', ... } },
+    { status: 429, headers: { 'Retry-After': ... } }
+  );
+}
+```
+
+#### Phase 6: Validation 로직 통합
+
+**커밋**: `1e878ec` - refactor: Validation 로직 통합 - validator.ts 제거
 
 **문제점**:
-```typescript
-// 현재 두 시스템 공존
-lib/contract/validator.ts      // 기존 시스템
-lib/contract/risk-detector.ts  // 신규 시스템
-```
+- `validator.ts`와 `risk-detector.ts` 두 시스템 공존
+- 경고 메시지 중복 생성 가능성
+- 유지보수 부담 (두 곳에서 로직 수정 필요)
 
-**계획**:
-1. `useWizard.ts`에서 `risk-detector.ts`만 사용
-2. `validator.ts` 로직 마이그레이션
-3. 단일 진실 공급원(Single Source of Truth) 확립
-4. `validator.ts` 파일 삭제
+**해결 방안**:
+1. **risk-detector.ts 확장**
+   - `calculateCompleteness()` 함수 이식
+   - `RiskDetectionResult`에 `completeness` 필드 추가
+   - 단일 함수 호출로 모든 검증 완료
 
-**예상 작업량**: 4-6시간
+2. **useWizard.ts 간소화**
+   ```typescript
+   // Before (6줄, 5개 함수 호출)
+   const completeness = calculateCompleteness(newFormData);
+   const basicRiskLevel = assessRiskLevel(newFormData);
+   const enhancedRiskDetection = detectContractRisks(newFormData);
+   const basicWarnings = generateWarnings(newFormData);
+   const warnings = [...basicWarnings, ...enhancedRiskDetection.warnings];
 
-### Phase 7: 템플릿 외부화 (우선순위: Medium)
+   // After (3줄, 1개 함수 호출)
+   const detection = detectContractRisks(newFormData);
+   const completeness = detection.completeness;
+   const riskLevel = detection.riskLevel === 'critical' ? 'high' : detection.riskLevel;
+   const warnings = detection.warnings;
+   ```
 
-**목표**: 계약서 템플릿 GitHub 저장소 분리
+3. **validator.ts 완전 제거**
+   - 228줄 삭제
+   - Git 히스토리에만 보존
 
-**구현 계획**:
-```
-1. GitHub Repository 생성
-   artcontract-templates/
-   ├── design/
-   │   ├── basic.md
-   │   └── commercial.md
-   ├── photography/
-   └── ...
+**효과**:
+- ✅ 코드 라인 감소: ~250줄
+- ✅ 단일 진실 공급원(Single Source of Truth) 확립
+- ✅ 경고 메시지 중복 제거
+- ✅ 유지보수성 대폭 향상
+- ✅ Gemini Critical Issue #2 해결
 
-2. API Route 수정
-   - GitHub Raw Content API 호출
-   - 캐싱 전략 (Vercel Edge Config)
-   - Fallback 템플릿
+**Gemini 코드 리뷰 반영 현황**:
+| 항목 | 우선순위 | 상태 |
+|------|---------|------|
+| API Rate Limiting | High | ✅ 완료 (Phase 5) |
+| Validation 통합 | High | ✅ 완료 (Phase 6) |
+| 템플릿 외부화 | Medium | ⏭️ 스킵 (Phase 7) |
+| 자동화 테스트 | High | ⏳ 진행 예정 (Phase 8) |
 
-3. 버전 관리
-   - Git Tag로 템플릿 버전 관리
-   - Changelog 자동 생성
-```
+---
 
-**장점**:
-- ✅ 법률 전문가 직접 수정
-- ✅ 배포 없이 업데이트
-- ✅ 투명한 변경 이력
+### Phase 7: 템플릿 외부화 (스킵)
 
-**예상 작업량**: 6-8시간
+**결정**: 템플릿 외부화 작업 스킵 (2025-10-02)
+
+**당초 계획**:
+- 계약서 템플릿을 GitHub 저장소로 분리
+- 코드 배포 없이 템플릿 업데이트 가능
+- 법률 전문가가 직접 수정 가능
+- GitHub Raw Content API + 캐싱
+
+**스킵 사유**:
+
+1. **현재 구조로 충분**
+   - 템플릿 변경 빈도가 매우 낮음 (월 1회 미만 예상)
+   - 4개 기본 템플릿으로 대부분의 사용 사례 커버 가능
+   - 하드코딩 304줄이 관리 가능한 수준
+   - 복잡도 증가 대비 실질적 효용 낮음
+
+2. **우선순위 재조정**
+   - **자동화 테스트**가 템플릿 유연성보다 중요
+   - 코드 안정성과 신뢰성이 최우선
+   - Gemini 리뷰 High Priority 작업에 집중 필요
+   - 제한된 개발 시간의 효율적 배분
+
+3. **실무적 판단**
+   - 외부 기여자가 아직 없음 (오픈소스 기여 활성화 전)
+   - 템플릿 수정은 주로 개발자(나)가 진행
+   - GitHub 저장소 분리 시 관리 포인트만 증가
+   - 캐싱, Fallback 등 추가 복잡도 불필요
+
+4. **향후 재검토 조건**
+   - 템플릿 종류가 20개 이상으로 증가 시
+   - 외부 기여자 (법률 전문가 등)가 5명 이상 참여 시
+   - 템플릿 변경 빈도가 주 1회 이상으로 증가 시
+   - 커뮤니티 요구사항 발생 시
+
+**현재 유지 방식**:
+- `app/api/templates/route.ts`에 하드코딩 유지
+- Git으로 버전 관리 (충분함)
+- 수정 필요 시 코드 수정 → 배포 (간단함)
+
+**결론**:
+> "현재는 YAGNI (You Aren't Gonna Need It) 원칙에 따라 템플릿 외부화 생략. 실제 필요성이 명확해지면 그때 구현하는 것이 효율적."
 
 ### Phase 8: 자동화 테스트 (우선순위: High)
 
@@ -741,5 +864,5 @@ describe('useWizard', () => {
 
 ---
 
-**최종 업데이트**: 2025-10-02
-**다음 업데이트 예정**: Phase 6 완료 후
+**최종 업데이트**: 2025-10-02 (Phase 5-6 완료, Phase 7 스킵, 문서 업데이트)
+**다음 업데이트 예정**: Phase 8 (자동화 테스트) 완료 후
