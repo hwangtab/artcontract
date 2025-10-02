@@ -54,10 +54,33 @@ export default function AssistantWindow({
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
-          <div className="text-center text-gray-500 text-sm mt-8">
-            <p className="mb-4">👋 안녕하세요!</p>
-            <p>계약서 작성 중 궁금한 점이 있으면</p>
-            <p>언제든지 물어보세요.</p>
+          <div className="text-center text-sm mt-4">
+            <div className="mb-6">
+              <p className="text-lg mb-2">👋 안녕하세요! AI 도우미예요.</p>
+            </div>
+
+            <div className="bg-gradient-to-r from-primary-50 to-blue-50 p-4 rounded-xl mb-4 text-left">
+              <p className="font-semibold text-primary-700 mb-2 flex items-center gap-2">
+                ✨ 자동 입력 기능
+              </p>
+              <p className="text-gray-700 text-xs leading-relaxed mb-3">
+                저와 대화하면 입력 내용이<br />
+                자동으로 폼에 채워져요!
+              </p>
+              <div className="bg-white/80 p-3 rounded-lg text-xs">
+                <p className="text-gray-600 mb-1">💬 예시:</p>
+                <p className="text-primary-600 font-medium mb-1">
+                  "웹툰 작업 50만원에 할게요"
+                </p>
+                <p className="text-gray-500 text-xs">
+                  → 분야, 장르, 금액 자동 입력 ✓
+                </p>
+              </div>
+            </div>
+
+            <p className="text-gray-500 text-xs">
+              궁금한 점이 있으면 편하게 물어보세요 😊
+            </p>
           </div>
         )}
 
