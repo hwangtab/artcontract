@@ -2,23 +2,43 @@
 
 import React, { useState } from 'react';
 import Input from '../../shared/Input';
+import Button from '../../shared/Button';
 import WarningBanner from '../../shared/WarningBanner';
-import { Calendar } from 'lucide-react';
+import { Calendar, Sparkles } from 'lucide-react';
 import { isToday, isTomorrow, calculateDaysBetween } from '@/lib/utils/date-helpers';
+import { WorkAnalysis } from '@/types/contract';
 
 interface Step04Props {
   startDate?: Date;
   deadline?: Date;
+  aiAnalysis?: WorkAnalysis;
   onUpdate: (startDate?: Date, deadline?: Date) => void;
 }
 
-export default function Step04Timeline({ startDate, deadline, onUpdate }: Step04Props) {
+export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpdate }: Step04Props) {
   const [startInput, setStartInput] = useState(
     startDate ? startDate.toISOString().split('T')[0] : ''
   );
   const [deadlineInput, setDeadlineInput] = useState(
     deadline ? deadline.toISOString().split('T')[0] : ''
   );
+
+  // AI 추천 마감일 계산
+  const getRecommendedDeadline = () => {
+    if (!aiAnalysis?.estimatedDays) return null;
+    const recommended = new Date();
+    recommended.setDate(recommended.getDate() + aiAnalysis.estimatedDays);
+    return recommended;
+  };
+
+  const recommendedDeadline = getRecommendedDeadline();
+
+  const handleAutoFillDeadline = () => {
+    if (!recommendedDeadline) return;
+    const dateString = recommendedDeadline.toISOString().split('T')[0];
+    setDeadlineInput(dateString);
+    onUpdate(startDate, recommendedDeadline);
+  };
 
   const handleStartChange = (value: string) => {
     setStartInput(value);
@@ -85,6 +105,33 @@ export default function Step04Timeline({ startDate, deadline, onUpdate }: Step04
       </div>
 
       <div className="mt-8 space-y-6">
+        {/* AI 추천 마감일 배너 */}
+        {aiAnalysis?.estimatedDays && recommendedDeadline && (
+          <div className="p-5 bg-gradient-to-r from-primary-50 to-blue-50 rounded-xl border-2 border-primary-300">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 mt-1">
+                <Sparkles className="text-primary-500" size={24} />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 mb-2">💡 AI 추천 마감일</h3>
+                <p className="text-sm text-gray-700 mb-3">
+                  작업 예상 소요 시간이 <strong className="text-primary-600">약 {aiAnalysis.estimatedDays}일</strong>이므로,
+                  <strong className="text-primary-600 text-lg"> {recommendedDeadline.toLocaleDateString('ko-KR')}</strong> 마감을 추천드려요.
+                </p>
+                <Button
+                  size="small"
+                  onClick={handleAutoFillDeadline}
+                  disabled={deadline?.toDateString() === recommendedDeadline.toDateString()}
+                >
+                  {deadline?.toDateString() === recommendedDeadline.toDateString()
+                    ? '✓ 적용됨'
+                    : `${recommendedDeadline.toLocaleDateString('ko-KR')}로 자동 채우기`}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block font-medium text-gray-700 mb-2">

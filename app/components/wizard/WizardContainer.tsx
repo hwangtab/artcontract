@@ -228,6 +228,7 @@ export default function WizardContainer() {
           <Step04Timeline
             startDate={formData.timeline?.startDate}
             deadline={formData.timeline?.deadline}
+            aiAnalysis={formData.aiAnalysis}
             onUpdate={(startDate, deadline) =>
               updateFormData({ timeline: { startDate, deadline } })
             }
