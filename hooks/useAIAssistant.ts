@@ -37,11 +37,17 @@ export function useAIAssistant() {
         type: 'text',
       };
 
-      setMessages((prev) => [...prev, userMessage]);
+      let currentMessages: AIMessage[] = [];
+
+      setMessages((prev) => {
+        currentMessages = [...prev, userMessage];
+        return currentMessages;
+      });
+
       setIsLoading(true);
 
       try {
-        // API 호출
+        // API 호출 - 현재 메시지 목록을 변수에서 참조
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -50,7 +56,7 @@ export function useAIAssistant() {
             context: {
               currentStep,
               formData,
-              conversationHistory: messages,
+              conversationHistory: currentMessages,
             },
           }),
         });
@@ -95,7 +101,7 @@ export function useAIAssistant() {
         setIsLoading(false);
       }
     },
-    [messages]
+    [] // messages 의존성 제거
   );
 
   const clearMessages = useCallback(() => {
