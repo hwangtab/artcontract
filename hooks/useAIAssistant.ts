@@ -135,8 +135,14 @@ export function useAIAssistant() {
   }, []);
 
   const addProactiveMessage = useCallback((content: string, severity: 'info' | 'warning' | 'danger') => {
+    // ✅ 같은 내용의 메시지가 이미 있는지 체크 (내용 기반 중복 방지)
+    const contentKey = `proactive_${content}`;
+    if (addedMessageIds.current.has(contentKey)) {
+      return; // 중복 차단
+    }
+
     const message: AIMessage = {
-      id: `msg_${Date.now()}_proactive`,
+      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_proactive`,
       role: 'assistant',
       content,
       timestamp: new Date(),
@@ -146,6 +152,7 @@ export function useAIAssistant() {
       },
     };
 
+    addedMessageIds.current.add(contentKey);
     setMessages((prev) => [...prev, message]);
     setIsOpen(true); // 자동으로 열기
   }, []);

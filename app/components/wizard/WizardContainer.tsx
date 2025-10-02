@@ -62,9 +62,11 @@ export default function WizardContainer() {
     };
 
     if (stepTips[currentStep] && !shownStepTips.has(currentStep)) {
+      // ✅ 즉시 Set에 추가하여 React Strict Mode 2번 마운트 시 중복 방지
+      setShownStepTips(prev => new Set(prev).add(currentStep));
+
       setTimeout(() => {
         addProactiveMessage(stepTips[currentStep], 'info');
-        setShownStepTips(prev => new Set(prev).add(currentStep));
       }, 1000);
     }
   }, [currentStep, addProactiveMessage, shownStepTips]);
