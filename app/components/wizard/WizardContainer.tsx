@@ -11,7 +11,9 @@ import Step03ClientType from './steps/Step03ClientType';
 import Step04Timeline from './steps/Step04Timeline';
 import Step05Payment from './steps/Step05Payment';
 import Step06Revisions from './steps/Step06Revisions';
+import Step06bCopyright from './steps/Step06bCopyright';
 import Step07UsageScope from './steps/Step07UsageScope';
+import Step08Protection from './steps/Step08Protection';
 import Step08FinalCheck from './steps/Step08FinalCheck';
 import ContractResult from '../contract/ContractResult';
 import AssistantButton from '../ai-assistant/AssistantButton';
@@ -57,8 +59,10 @@ export default function WizardContainer() {
       4: '📅 마감일이 너무 촉박하면 러시 추가 요금을 받는 것을 추천드려요!',
       5: '💰 금액이 100만원 이상이면 변호사 검토를 추천해요. 계약금은 30-50%가 적당해요.',
       6: '🔄 무제한 수정은 절대 금물! 2-3회가 적당하고, 추가 수정비를 명시하세요.',
+      6.5: '⚖️ 저작권 관리는 선택사항이지만, 고액 계약(100만원 이상)이면 반드시 설정하세요! 저작인격권은 절대 양도할 수 없어요.',
       7: '🌐 상업적 사용권은 개인 사용보다 2-3배 높게 책정하세요. 독점권은 5배까지도 가능해요!',
-      8: '✅ 최종 확인 단계예요. 빠진 내용이 없는지 꼼꼼히 확인하세요!',
+      8: '🛡️ 보호 조항은 선택사항이지만, 크레딧 명기와 수정 권리는 반드시 추가하세요! 포트폴리오 사용과 저작인격권 보호에 중요합니다.',
+      9: '✅ 최종 확인 단계예요. 빠진 내용이 없는지 꼼꼼히 확인하세요!',
     };
 
     if (stepTips[currentStep] && !shownStepTips.has(currentStep)) {
@@ -165,7 +169,7 @@ export default function WizardContainer() {
 
   const handleEditContract = () => {
     setGeneratedContract(null);
-    goToStep(8);
+    goToStep(9);
   };
 
   const handleSendMessage = (message: string) => {
@@ -252,6 +256,13 @@ export default function WizardContainer() {
             }
           />
         );
+      case 6.5:
+        return (
+          <Step06bCopyright
+            copyrightTerms={formData.copyrightTerms}
+            onUpdate={(data) => updateFormData(data)}
+          />
+        );
       case 7:
         return (
           <Step07UsageScope
@@ -263,6 +274,17 @@ export default function WizardContainer() {
           />
         );
       case 8:
+        return (
+          <Step08Protection
+            protectionClauses={formData.protectionClauses}
+            artistName={formData.artistName}
+            field={formData.field}
+            revisions={formData.revisions}
+            additionalRevisionFee={formData.additionalRevisionFee}
+            onUpdate={(data) => updateFormData(data)}
+          />
+        );
+      case 9:
         return (
           <Step08FinalCheck
             formData={formData}
@@ -314,7 +336,7 @@ export default function WizardContainer() {
         </div>
 
         {/* Navigation */}
-        {currentStep !== 8 && (
+        {currentStep !== 9 && (
           <div className="flex justify-between items-center">
             <Button
               variant="secondary"
@@ -348,7 +370,7 @@ export default function WizardContainer() {
         )}
 
         {/* Warnings */}
-        {formData.warnings && formData.warnings.length > 0 && currentStep !== 8 && (
+        {formData.warnings && formData.warnings.length > 0 && currentStep !== 9 && (
           <div className="mt-6 space-y-3">
             {formData.warnings.slice(0, 2).map((warning) => (
               <div

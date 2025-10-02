@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { ContractFormData } from '@/types/contract';
+import { ContractFormData, EnhancedContractFormData } from '@/types/contract';
 import { WizardState } from '@/types/wizard';
 import { calculateCompleteness, assessRiskLevel, generateWarnings } from '@/lib/contract/validator';
+import { detectContractRisks } from '@/lib/contract/risk-detector';
 
-const TOTAL_STEPS = 9;  // Step0 추가로 9개
+const TOTAL_STEPS = 11;  // Step0 + 10단계 (저작권, 보호 조항 추가)
 
-const initialFormData: ContractFormData = {
+const initialFormData: EnhancedContractFormData = {
   currentStep: 0,  // Step0부터 시작
   completeness: 0,
   riskLevel: 'low',
@@ -29,18 +30,28 @@ export function useWizard() {
   });
 
   // 폼 데이터 업데이트
-  const updateFormData = useCallback((updates: Partial<ContractFormData>) => {
+  const updateFormData = useCallback((updates: Partial<EnhancedContractFormData>) => {
     setState((prev) => {
-      const newFormData = { ...prev.formData, ...updates };
+      const newFormData = { ...prev.formData, ...updates } as EnhancedContractFormData;
 
       // 완성도 계산
       const completeness = calculateCompleteness(newFormData);
 
-      // 위험 수준 평가
-      const riskLevel = assessRiskLevel(newFormData);
+      // 위험 수준 평가 (기존 + Enhanced)
+      const basicRiskLevel = assessRiskLevel(newFormData);
+      const enhancedRiskDetection = detectContractRisks(newFormData);
 
-      // 경고 생성
-      const warnings = generateWarnings(newFormData);
+      // Enhanced 위험 수준이 더 높으면 사용
+      const riskLevel =
+        enhancedRiskDetection.riskLevel === 'critical' ? 'high' :
+        enhancedRiskDetection.riskLevel === 'high' ? 'high' :
+        enhancedRiskDetection.riskLevel === 'medium' ? 'medium' :
+        basicRiskLevel;
+
+      // 경고 생성 (기존 + Enhanced)
+      const basicWarnings = generateWarnings(newFormData);
+      const enhancedWarnings = enhancedRiskDetection.warnings;
+      const warnings = [...basicWarnings, ...enhancedWarnings];
 
       // canGoNext 계산
       let canGoNext = false;
@@ -66,10 +77,16 @@ export function useWizard() {
         case 6: // Step6: 수정 횟수
           canGoNext = newFormData.revisions !== null && newFormData.revisions !== undefined;
           break;
+        case 6.5: // Step6b: 저작권 (선택사항)
+          canGoNext = true; // 선택사항이므로 항상 통과
+          break;
         case 7: // Step7: 사용 범위
           canGoNext = !!(newFormData.usageScope && newFormData.usageScope.length > 0);
           break;
-        case 8: // Step8: 최종 확인
+        case 8: // Step8: 보호 조항 (선택사항)
+          canGoNext = true; // 선택사항이므로 항상 통과
+          break;
+        case 9: // Step9: 최종 확인
           canGoNext = true;
           break;
         default:
