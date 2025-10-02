@@ -77,16 +77,16 @@ export function useWizard() {
         case 6: // Step6: 수정 횟수
           canGoNext = newFormData.revisions !== null && newFormData.revisions !== undefined;
           break;
-        case 6.5: // Step6b: 저작권 (선택사항)
+        case 7: // Step7: 저작권 (선택사항)
           canGoNext = true; // 선택사항이므로 항상 통과
           break;
-        case 7: // Step7: 사용 범위
+        case 8: // Step8: 사용 범위
           canGoNext = !!(newFormData.usageScope && newFormData.usageScope.length > 0);
           break;
-        case 8: // Step8: 보호 조항 (선택사항)
+        case 9: // Step9: 보호 조항 (선택사항)
           canGoNext = true; // 선택사항이므로 항상 통과
           break;
-        case 9: // Step9: 최종 확인
+        case 10: // Step10: 최종 확인
           canGoNext = true;
           break;
         default:
