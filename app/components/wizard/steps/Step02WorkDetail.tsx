@@ -222,21 +222,24 @@ export default function Step02WorkDetail({
               </div>
             )}
 
-            <div className="mt-4 flex gap-3">
-              <Button
-                onClick={() => {
-                  // 이미 저장되어 있으므로 다음 단계로 진행 가능
-                }}
-                className="flex-1"
-              >
-                ✅ 이대로 진행하기
-              </Button>
+            <div className="mt-4 space-y-3">
+              <div className="bg-success/10 border border-success p-4 rounded-lg">
+                <p className="text-success-dark font-semibold flex items-center gap-2">
+                  <Check size={20} />
+                  AI 분석이 완료되었어요!
+                </p>
+                <p className="text-sm text-gray-600 mt-1">
+                  아래 <strong>"다음"</strong> 버튼을 눌러 진행하세요.
+                </p>
+              </div>
+
               <Button
                 variant="secondary"
                 onClick={() => {
                   setAnalysisResult(null);
                   setUserInput('');
                 }}
+                className="w-full"
               >
                 다시 설명하기
               </Button>
