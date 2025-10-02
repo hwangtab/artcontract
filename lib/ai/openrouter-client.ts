@@ -198,7 +198,8 @@ export class OpenRouterClient {
 
     // JSON 형식 응답 파싱 시도
     try {
-      const jsonMatch = response.match(/```json\s*\n?([\s\S]*?)\n?```/);
+      // 1. 마크다운 코드 블록으로 감싼 JSON
+      let jsonMatch = response.match(/```json\s*\n?([\s\S]*?)\n?```/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[1]);
         return {
@@ -206,8 +207,19 @@ export class OpenRouterClient {
           formUpdates: parsed.formUpdates,
         };
       }
+
+      // 2. 코드 블록 없이 직접 JSON 객체
+      jsonMatch = response.match(/\{[\s\S]*"message"[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return {
+          message: parsed.message,
+          formUpdates: parsed.formUpdates,
+        };
+      }
     } catch (error) {
       // JSON 파싱 실패 시 일반 텍스트로 처리
+      console.warn('Failed to parse AI JSON response:', error);
     }
 
     // 일반 텍스트 응답
