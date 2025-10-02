@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { ContractFormData, EnhancedContractFormData } from '@/types/contract';
 import { WizardState } from '@/types/wizard';
-import { calculateCompleteness, assessRiskLevel, generateWarnings } from '@/lib/contract/validator';
 import { detectContractRisks } from '@/lib/contract/risk-detector';
 
 const TOTAL_STEPS = 11;  // Step0 + 10단계 (저작권, 보호 조항 추가)
@@ -34,24 +33,13 @@ export function useWizard() {
     setState((prev) => {
       const newFormData = { ...prev.formData, ...updates } as EnhancedContractFormData;
 
-      // 완성도 계산
-      const completeness = calculateCompleteness(newFormData);
+      // 위험 감지 시스템 (통합)
+      const detection = detectContractRisks(newFormData);
 
-      // 위험 수준 평가 (기존 + Enhanced)
-      const basicRiskLevel = assessRiskLevel(newFormData);
-      const enhancedRiskDetection = detectContractRisks(newFormData);
-
-      // Enhanced 위험 수준이 더 높으면 사용
-      const riskLevel =
-        enhancedRiskDetection.riskLevel === 'critical' ? 'high' :
-        enhancedRiskDetection.riskLevel === 'high' ? 'high' :
-        enhancedRiskDetection.riskLevel === 'medium' ? 'medium' :
-        basicRiskLevel;
-
-      // 경고 생성 (기존 + Enhanced)
-      const basicWarnings = generateWarnings(newFormData);
-      const enhancedWarnings = enhancedRiskDetection.warnings;
-      const warnings = [...basicWarnings, ...enhancedWarnings];
+      // completeness, riskLevel, warnings 모두 한 번에 계산
+      const completeness = detection.completeness;
+      const riskLevel = detection.riskLevel === 'critical' ? 'high' : detection.riskLevel;
+      const warnings = detection.warnings;
 
       // canGoNext 계산
       let canGoNext = false;

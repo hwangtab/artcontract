@@ -5,6 +5,50 @@ export interface RiskDetectionResult {
   warnings: Warning[];
   suggestions: string[];
   criticalErrors: string[];
+  completeness: number; // 0-100 percentage
+}
+
+/**
+ * 완성도 계산 (0-100%)
+ * validator.ts에서 이식
+ */
+function calculateCompleteness(data: ContractFormData): number {
+  const requiredFields = [
+    'field',
+    'workType',
+    'payment.amount',
+    'revisions',
+  ];
+
+  const optionalButImportant = [
+    'clientName',
+    'timeline.deadline',
+    'usageScope',
+  ];
+
+  let completed = 0;
+  const total = requiredFields.length * 1.5 + optionalButImportant.length;
+
+  requiredFields.forEach((field) => {
+    if (getNestedValue(data, field)) {
+      completed += 1.5; // 필수 필드는 가중치 높게
+    }
+  });
+
+  optionalButImportant.forEach((field) => {
+    if (getNestedValue(data, field)) {
+      completed += 1;
+    }
+  });
+
+  return Math.min(100, Math.round((completed / total) * 100));
+}
+
+/**
+ * 중첩 객체 값 가져오기
+ */
+function getNestedValue(obj: any, path: string): any {
+  return path.split('.').reduce((current, key) => current?.[key], obj);
 }
 
 /**
@@ -382,11 +426,15 @@ export function detectContractRisks(
     suggestions.push('한국저작권위원회(www.copyright.or.kr) 또는 예술인신문고(1899-2202)에 상담을 신청하세요.');
   }
 
+  // 완성도 계산
+  const completeness = calculateCompleteness(formData);
+
   return {
     riskLevel,
     warnings,
     suggestions,
     criticalErrors,
+    completeness,
   };
 }
 
