@@ -137,6 +137,81 @@ export class OpenRouterClient {
       conversationHistory: Array<{ role: string; content: string }>;
     }
   ): Promise<{ message: string; formUpdates?: any }> {
+    // 단계별 가이드 생성
+    const getStepGuidance = (step: number): string => {
+      switch (step) {
+        case 0:
+          return `**현재 단계: 작가 정보 입력**
+- 이 단계에서는 계약서의 "을(乙)" 즉 작가님의 정보를 입력해요.
+- 필수: 이름, 연락처
+- 선택: 주민등록번호 뒷자리(또는 사업자번호), 주소
+- 사용자가 자신의 정보를 말하면 artistName, artistContact, artistIdNumber, artistAddress로 추출하세요.`;
+
+        case 1:
+          return `**현재 단계: 작업 분야 선택**
+- 어떤 종류의 예술 작업인지 선택하는 단계예요.
+- 8개 분야: 그림/디자인, 사진, 글쓰기, 음악, 영상, 성우/더빙, 번역, 기타
+- 각 분야마다 세부 장르가 있어요 (예: 그림/디자인 → 일러스트, 웹툰, 캐릭터 디자인 등)
+- 사용자가 작업 종류를 말하면 field와 subField로 추출하세요.`;
+
+        case 2:
+          return `**현재 단계: 작업 상세 설명**
+- 구체적으로 어떤 작업을 할 건지 자세히 설명하는 단계예요.
+- 작업 내용, 스타일, 분량, 형식 등을 자유롭게 입력해요.
+- 너무 짧거나 애매하면 구체적으로 물어보세요 (예: "A4 몇 장 정도예요?", "어떤 스타일을 원하세요?")
+- workDescription으로 추출하세요.`;
+
+        case 3:
+          return `**현재 단계: 클라이언트 정보**
+- 계약서의 "갑(甲)" 즉 의뢰인 정보를 입력하는 단계예요.
+- 필수: 이름(또는 회사명), 연락처
+- 개인인지, 소규모 사업자인지, 대기업인지도 파악하면 좋아요.
+- clientName, clientContact, clientType으로 추출하세요.`;
+
+        case 4:
+          return `**현재 단계: 일정**
+- 작업 시작일과 마감일을 정하는 단계예요.
+- ⚠️ 너무 촉박한 일정(1-3일)이면 러시 요금을 권장하세요!
+- 긴 프로젝트(30일 이상)면 중간 점검일도 제안하세요.
+- timeline.startDate, timeline.deadline으로 추출하세요 (YYYY-MM-DD 형식).`;
+
+        case 5:
+          return `**현재 단계: 금액**
+- 작업 대가를 얼마 받을지 정하는 단계예요. 가장 중요한 부분이에요!
+- ⚠️ 5만원 미만이면 "너무 저렴하지 않나요?" 물어보세요.
+- 💼 100만원 이상이면 계약금(30%)과 법률 자문을 권장하세요.
+- 지급 방식(계좌이체, 현금 등)도 물어보세요.
+- payment.amount, payment.deposit, payment.paymentMethod로 추출하세요.`;
+
+        case 6:
+          return `**현재 단계: 수정 횟수**
+- 작업 완료 후 몇 번까지 수정해줄지 정하는 단계예요.
+- ⚠️ "무제한"은 위험해요! 꼭 경고하세요.
+- 0회는 수정 없음, 1-3회가 일반적, 5회 이상은 많은 편이에요.
+- 추가 수정 시 비용도 정할 수 있어요.
+- revisions (숫자 또는 'unlimited'), additionalRevisionFee로 추출하세요.`;
+
+        case 7:
+          return `**현재 단계: 사용 범위**
+- 완성된 작업물을 어디에 어떻게 쓸 수 있는지 정하는 단계예요.
+- 옵션: 개인적 사용, 상업적 사용, 온라인, 인쇄물, 무제한
+- 💼 상업적 사용이나 무제한이면 가격이 더 높아야 해요!
+- 저작권을 양도하는 건지, 사용권만 주는 건지도 중요해요.
+- usageScope (배열), commercialUse (true/false)로 추출하세요.`;
+
+        case 8:
+          return `**현재 단계: 최종 확인**
+- 모든 정보를 입력했고, 이제 계약서를 생성하기 직전이에요.
+- 빠진 정보가 있는지, 위험한 조건은 없는지 한 번 더 확인하세요.
+- 궁금한 점이 있으면 마지막으로 물어보라고 안내하세요.`;
+
+        default:
+          return '';
+      }
+    };
+
+    const stepGuidance = getStepGuidance(context.currentStep);
+
     const systemPrompt = `당신은 예술가들의 계약서 작성을 돕는 친절한 AI 도우미입니다.
 
 정체성:
@@ -163,6 +238,8 @@ export class OpenRouterClient {
 현재 상황:
 - 단계: ${context.currentStep}/8
 - 입력된 정보: ${JSON.stringify(context.formData, null, 2)}
+
+${stepGuidance}
 
 **중요: 응답 형식**
 사용자의 메시지에서 계약 정보를 추출할 수 있다면, 다음 JSON 형식으로 응답하세요:
