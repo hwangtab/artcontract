@@ -196,14 +196,27 @@ export default function Step02WorkDetail({
               </div>
             </div>
 
-            <div className="bg-white/80 p-4 rounded-lg mb-4">
-              <p className="text-sm text-gray-600 mb-2">💰 AI 추천 금액</p>
-              <p className="text-2xl font-bold text-primary-600">
-                {analysisResult.suggestedPriceRange.min.toLocaleString()}원 ~ {analysisResult.suggestedPriceRange.max.toLocaleString()}원
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                이 금액은 비슷한 작업의 시장 가격을 기준으로 AI가 추천한 범위예요
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="bg-white/80 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-2">💰 AI 추천 금액</p>
+                <p className="text-2xl font-bold text-primary-600">
+                  {analysisResult.suggestedPriceRange.min.toLocaleString()}원 ~ {analysisResult.suggestedPriceRange.max.toLocaleString()}원
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  시장 가격 기준 AI 추천 범위
+                </p>
+              </div>
+              {analysisResult.estimatedDays && (
+                <div className="bg-white/80 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-2">⏱️ 예상 작업 기간</p>
+                  <p className="text-2xl font-bold text-primary-600">
+                    약 {analysisResult.estimatedDays}일
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    복잡도 기준 예상 소요 시간
+                  </p>
+                </div>
+              )}
             </div>
 
             {analysisResult.riskFactors && analysisResult.riskFactors.length > 0 && (

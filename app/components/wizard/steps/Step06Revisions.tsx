@@ -3,20 +3,46 @@
 import React, { useState } from 'react';
 import Card from '../../shared/Card';
 import Input from '../../shared/Input';
+import Button from '../../shared/Button';
 import WarningBanner from '../../shared/WarningBanner';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Sparkles } from 'lucide-react';
+import { WorkAnalysis } from '@/types/contract';
 
 interface Step06Props {
   revisions?: number | 'unlimited' | null;
   additionalRevisionFee?: number;
+  aiAnalysis?: WorkAnalysis;
   onUpdate: (revisions?: number | 'unlimited' | null, additionalFee?: number) => void;
 }
 
 export default function Step06Revisions({
   revisions,
   additionalRevisionFee,
+  aiAnalysis,
   onUpdate,
 }: Step06Props) {
+  // AI 추천 수정 횟수 계산
+  const getRecommendedRevisions = () => {
+    if (!aiAnalysis || !aiAnalysis.complexity) return null;
+
+    switch (aiAnalysis.complexity) {
+      case 'simple':
+        return 2;
+      case 'medium':
+        return 3;
+      case 'complex':
+        return 5;
+      default:
+        return null;
+    }
+  };
+
+  const recommendedRevisions = getRecommendedRevisions();
+  const complexityLabel = {
+    simple: '단순',
+    medium: '중간',
+    complex: '복잡'
+  };
   const [showUnlimited, setShowUnlimited] = useState(revisions === 'unlimited');
   const [showCustomInput, setShowCustomInput] = useState(
     typeof revisions === 'number' && ![2, 3, 5].includes(revisions)
@@ -84,6 +110,31 @@ export default function Step06Revisions({
       </div>
 
       <div className="mt-8 space-y-6">
+        {/* AI 추천 배너 */}
+        {recommendedRevisions && aiAnalysis && (
+          <div className="p-5 bg-gradient-to-r from-primary-50 to-blue-50 rounded-xl border-2 border-primary-300">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 mt-1">
+                <Sparkles className="text-primary-500" size={24} />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 mb-2">💡 AI 추천 수정 횟수</h3>
+                <p className="text-sm text-gray-700 mb-3">
+                  작업 복잡도가 <strong className="text-primary-600">{complexityLabel[aiAnalysis.complexity]}</strong>이므로,
+                  <strong className="text-primary-600 text-lg"> {recommendedRevisions}회</strong> 수정을 추천드려요.
+                </p>
+                <Button
+                  size="small"
+                  onClick={() => handlePresetSelect(recommendedRevisions)}
+                  disabled={revisions === recommendedRevisions}
+                >
+                  {revisions === recommendedRevisions ? '✓ 적용됨' : `${recommendedRevisions}회로 자동 채우기`}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Preset Options */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {presetOptions.map((option) => (

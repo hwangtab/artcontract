@@ -251,6 +251,7 @@ export default function WizardContainer() {
           <Step06Revisions
             revisions={formData.revisions}
             additionalRevisionFee={formData.additionalRevisionFee}
+            aiAnalysis={formData.aiAnalysis}
             onUpdate={(revisions, additionalFee) =>
               updateFormData({ revisions, additionalRevisionFee: additionalFee })
             }

@@ -91,6 +91,7 @@ export interface WorkAnalysis {
     max: number;
     currency: string;
   };
+  estimatedDays?: number;  // AI 추천 예상 작업 기간 (일)
   additionalClauses: string[];
   confidence: number;
 }

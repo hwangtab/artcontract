@@ -54,9 +54,10 @@ export default function Step08FinalCheck({ formData, onEdit, onGenerate }: Step0
     },
     {
       label: '작업 내용',
-      value: formData.workType || formData.workDescription || '미정',
+      value: formData.workDescription || formData.workType || '미정',
       complete: !!(formData.workType || formData.workDescription),
       step: 2,
+      isLongText: !!formData.workDescription && formData.workDescription.length > 50,
     },
     {
       label: '클라이언트',
@@ -127,7 +128,7 @@ export default function Step08FinalCheck({ formData, onEdit, onGenerate }: Step0
       {/* Summary Items */}
       <div className="space-y-3">
         <h3 className="font-semibold text-gray-900 mb-4">📋 입력하신 정보</h3>
-        {summaryItems.map((item) => (
+        {summaryItems.map((item: any) => (
           <div
             key={item.label}
             className={`flex items-center justify-between p-4 rounded-lg border-2 ${
@@ -140,14 +141,22 @@ export default function Step08FinalCheck({ formData, onEdit, onGenerate }: Step0
               ) : (
                 <AlertCircle size={20} className="text-warning flex-shrink-0" />
               )}
-              <div>
+              <div className="flex-1">
                 <p className="font-medium text-gray-900">{item.label}</p>
-                <p className="text-sm text-gray-600">{item.value}</p>
+                {item.isLongText ? (
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                      {item.value}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-600">{item.value}</p>
+                )}
               </div>
             </div>
             <button
               onClick={() => onEdit(item.step)}
-              className="flex items-center gap-1 text-primary-500 hover:text-primary-700 text-sm font-medium"
+              className="flex items-center gap-1 text-primary-500 hover:text-primary-700 text-sm font-medium flex-shrink-0 ml-4"
             >
               <Edit size={16} />
               수정
