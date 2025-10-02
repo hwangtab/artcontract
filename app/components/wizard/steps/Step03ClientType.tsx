@@ -121,19 +121,19 @@ export default function Step03ClientType({
         {clientType && (
           <div className="space-y-4 mt-8 p-6 bg-gray-50 rounded-lg">
             <h3 className="font-semibold text-gray-900 mb-4">
-              클라이언트 정보 (선택사항)
+              클라이언트 정보 <span className="text-danger">*</span>
             </h3>
 
             <Input
-              label="클라이언트 이름/상호"
+              label="클라이언트 이름/상호 *"
               value={clientName || ''}
               onChange={(value) => onUpdate({ clientType, clientName: value, clientContact })}
               placeholder="예: 홍길동, 카페모카"
-              helper="계약서에 표시될 이름입니다"
+              helper="계약서에 표시될 이름입니다 (필수)"
             />
 
             <Input
-              label="연락처"
+              label="연락처 (선택)"
               value={clientContact || ''}
               onChange={(value) => onUpdate({ clientType, clientName, clientContact: value })}
               placeholder="010-1234-5678 또는 email@example.com"
@@ -144,7 +144,7 @@ export default function Step03ClientType({
 
         <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
           <p className="text-sm text-blue-800">
-            💡 <strong>팁:</strong> 클라이언트 정보는 선택사항이지만, 입력하면 더 완성도 높은 계약서가 만들어져요!
+            💡 <strong>팁:</strong> 클라이언트 이름은 필수예요. 연락처는 선택사항이지만 입력하면 더 안전한 계약서가 돼요!
           </p>
         </div>
       </div>
