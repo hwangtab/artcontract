@@ -45,8 +45,9 @@ export default function WizardContainer() {
 
   const [generatedContract, setGeneratedContract] = useState<GeneratedContract | null>(null);
   const [shownWarnings, setShownWarnings] = useState<Set<string>>(new Set());
+  const [shownStepTips, setShownStepTips] = useState<Set<number>>(new Set());
 
-  // 프로액티브 메시지: 각 단계 진입 시 팁 제공
+  // 프로액티브 메시지: 각 단계 진입 시 팁 제공 (중복 방지)
   useEffect(() => {
     const stepTips: { [key: number]: string } = {
       0: '👤 안녕하세요! 먼저 작가님의 정보를 입력해주세요. 계약서의 "을"이 됩니다.',
@@ -60,12 +61,13 @@ export default function WizardContainer() {
       8: '✅ 최종 확인 단계예요. 빠진 내용이 없는지 꼼꼼히 확인하세요!',
     };
 
-    if (stepTips[currentStep] && messages.length === 0) {
+    if (stepTips[currentStep] && !shownStepTips.has(currentStep)) {
       setTimeout(() => {
         addProactiveMessage(stepTips[currentStep], 'info');
+        setShownStepTips(prev => new Set(prev).add(currentStep));
       }, 1000);
     }
-  }, [currentStep, addProactiveMessage, messages.length]);
+  }, [currentStep, addProactiveMessage, shownStepTips]);
 
   // 위험 조건 자동 감지 (중복 방지)
   useEffect(() => {
