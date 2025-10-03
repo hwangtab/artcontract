@@ -10,7 +10,7 @@ interface Step07Props {
   usageScope?: UsageScope[];
   commercialUse?: boolean;
   exclusiveRights?: boolean;
-  aiAnalysis?: WorkAnalysis;
+  aiAnalysis?: WorkAnalysis | null;
   onUpdate: (data: { usageScope?: UsageScope[]; commercialUse?: boolean; exclusiveRights?: boolean }) => void;
 }
 
@@ -52,6 +52,13 @@ export default function Step07UsageScope({
   aiAnalysis,
   onUpdate,
 }: Step07Props) {
+  const areScopesEqual = (a: UsageScope[], b: UsageScope[]) => {
+    if (a.length !== b.length) return false;
+    const sortedA = [...a].sort();
+    const sortedB = [...b].sort();
+    return sortedA.every((value, idx) => value === sortedB[idx]);
+  };
+
   const getUsageScopeLabel = (scope: UsageScope) => {
     switch (scope) {
       case 'personal':
@@ -140,9 +147,9 @@ export default function Step07UsageScope({
                       exclusiveRights
                     });
                   }}
-                  disabled={JSON.stringify(usageScope.sort()) === JSON.stringify(aiAnalysis.usageScope.sort())}
+                  disabled={areScopesEqual(usageScope, aiAnalysis.usageScope)}
                 >
-                  {JSON.stringify(usageScope.sort()) === JSON.stringify(aiAnalysis.usageScope.sort()) ? '✓ 적용됨' : '이 정보로 자동 채우기'}
+                  {areScopesEqual(usageScope, aiAnalysis.usageScope) ? '✓ 적용됨' : '이 정보로 자동 채우기'}
                 </Button>
               </div>
             </div>

@@ -43,7 +43,7 @@ export default function Step05Payment({
         (item.unitPrice !== undefined && item.quantity !== undefined
           ? item.unitPrice * item.quantity
           : undefined);
-      return subtotal ? sum + subtotal : sum;
+      return subtotal !== undefined ? sum + subtotal : sum;
     }, 0);
   }, [workItems]);
 

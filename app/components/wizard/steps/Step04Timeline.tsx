@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Input from '../../shared/Input';
 import Button from '../../shared/Button';
 import WarningBanner from '../../shared/WarningBanner';
@@ -11,7 +11,7 @@ import { WorkAnalysis } from '@/types/contract';
 interface Step04Props {
   startDate?: Date;
   deadline?: Date;
-  aiAnalysis?: WorkAnalysis;
+  aiAnalysis?: WorkAnalysis | null;
   onUpdate: (startDate?: Date, deadline?: Date) => void;
   onAICoach?: (message: string) => void;
 }
@@ -24,6 +24,14 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
     deadline ? deadline.toISOString().split('T')[0] : ''
   );
   const [hasCoached, setHasCoached] = useState(false);
+
+  useEffect(() => {
+    setStartInput(startDate ? startDate.toISOString().split('T')[0] : '');
+  }, [startDate]);
+
+  useEffect(() => {
+    setDeadlineInput(deadline ? deadline.toISOString().split('T')[0] : '');
+  }, [deadline]);
 
   // AI 추천 마감일 계산
   const getRecommendedDeadline = () => {
