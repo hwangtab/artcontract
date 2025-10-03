@@ -61,9 +61,10 @@ export default function Step02WorkDetail({
       const data = await response.json();
 
       if (data.success && data.data) {
-        setAnalysisResult(data.data);
+        const result: WorkAnalysis = data.data;
+        setAnalysisResult(result);
         setShowErrorBanner(false);
-        onSelect(userInput.trim(), userInput.trim(), data.data);
+        onSelect(result.workType || userInput.trim(), userInput.trim(), result);
       } else {
         // AI 실패 시 ErrorBanner 표시
         setErrorMessage('AI 분석에 실패했어요. 네트워크 상태를 확인하고 다시 시도해주세요.');

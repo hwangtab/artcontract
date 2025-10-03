@@ -54,14 +54,21 @@ export default function WizardContainer() {
     // 템플릿 가져오기
     try {
       const response = await fetch(`/api/templates?field=${formData.field}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch template: ${response.status}`);
+      }
+
       const data = await response.json();
 
-      if (data.success) {
+      if (data.success && data.data?.template) {
         const contract = generateContract(formData, data.data.template);
         setGeneratedContract(contract);
+      } else {
+        throw new Error('Template API returned an invalid response');
       }
     } catch (error) {
       console.error('Contract generation failed:', error);
+      addProactiveMessage('계약서 템플릿을 불러오지 못했어요. 잠시 후 다시 시도해주세요.', 'danger');
     }
   };
 
@@ -222,7 +229,7 @@ export default function WizardContainer() {
               진행률: {completeness}%
             </span>
             <span className="text-sm font-medium text-gray-600">
-              {currentStep} / {totalSteps}
+              {Math.min(currentStep + 1, totalSteps)} / {totalSteps}
             </span>
           </div>
           <div
@@ -235,7 +242,7 @@ export default function WizardContainer() {
           >
             <div
               className="h-full bg-primary-500 transition-all duration-300"
-              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+              style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
             />
           </div>
         </div>
@@ -262,9 +269,9 @@ export default function WizardContainer() {
                 <div
                   key={idx}
                   className={`w-2 h-2 rounded-full transition-colors ${
-                    idx + 1 === currentStep
+                    idx === currentStep
                       ? 'bg-primary-500'
-                      : idx + 1 < currentStep
+                      : idx < currentStep
                       ? 'bg-primary-300'
                       : 'bg-gray-300'
                   }`}

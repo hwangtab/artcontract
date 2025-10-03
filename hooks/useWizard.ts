@@ -23,7 +23,7 @@ export function useWizard() {
     formData: initialFormData,
     isComplete: false,
     canGoNext: false,  // 작가 정보 입력 전까지 진행 불가
-    canGoPrev: true,   // Step0에서도 "처음부터 다시" 가능
+    canGoPrev: false,
     completeness: 0,
     visitedSteps: [0],  // Step0부터
   });
@@ -160,7 +160,7 @@ export function useWizard() {
 
   // 특정 단계로 이동
   const goToStep = useCallback((step: number) => {
-    if (step < 1 || step > TOTAL_STEPS) return;
+    if (step < 0 || step > TOTAL_STEPS) return;
 
     setState((prev) => {
       const visitedSteps = prev.visitedSteps.includes(step)
@@ -170,7 +170,7 @@ export function useWizard() {
       return {
         ...prev,
         currentStep: step,
-        canGoPrev: step > 1,
+        canGoPrev: step > 0,
         canGoNext: step < TOTAL_STEPS,
         isComplete: step === TOTAL_STEPS,
         visitedSteps,

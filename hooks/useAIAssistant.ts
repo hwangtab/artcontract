@@ -31,7 +31,7 @@ export function useAIAssistant() {
       onFormUpdate?: (updates: Partial<ContractFormData>) => void
     ) => {
       // 중복 요청 방지
-      const requestKey = `${content}_${Date.now()}`;
+      const requestKey = `${content}_${currentStep}`.trim();
       if (processingRef.current.has(requestKey)) {
         return;
       }
