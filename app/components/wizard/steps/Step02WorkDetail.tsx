@@ -108,21 +108,25 @@ export default function Step02WorkDetail({
   const syncItems = useCallback(
     (nextItems: WorkItemDraft[]) => {
       setItems(nextItems);
+      const normalizedItems = nextItems.map((item) => ({
+        ...item,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        subtotal:
+          item.subtotal ??
+          (item.unitPrice !== undefined && item.quantity !== undefined
+            ? item.unitPrice * item.quantity
+            : undefined),
+      }));
+
+      const primaryTitle = normalizedItems[0]?.title;
+
       onUpdate({
-        workItems: nextItems.map((item) => ({
-          ...item,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          subtotal:
-            item.subtotal ??
-            (item.unitPrice !== undefined && item.quantity !== undefined
-              ? item.unitPrice * item.quantity
-              : undefined),
-        })),
-        workType: nextItems[0]?.title || undefined,
+        workItems: normalizedItems,
+        workType: primaryTitle || (descriptionInput.trim() || undefined),
       });
     },
-    [onUpdate]
+    [descriptionInput, onUpdate]
   );
 
   const handleDescriptionChange = (value: string) => {

@@ -24,11 +24,10 @@ function calculateCompleteness(data: ContractFormData): number {
     'clientName',
     'timeline.deadline',
     'usageScope',
-    'workItems',
   ];
 
   let completed = 0;
-  const total = requiredFields.length * 1.5 + optionalButImportant.length;
+  const total = requiredFields.length * 1.5 + optionalButImportant.length + 1; // workItems 가중치
 
   requiredFields.forEach((field) => {
     if (getNestedValue(data, field)) {
@@ -41,6 +40,10 @@ function calculateCompleteness(data: ContractFormData): number {
       completed += 1;
     }
   });
+
+  if (Array.isArray((data as any).workItems) && (data as any).workItems.length > 0) {
+    completed += 1;
+  }
 
   return Math.min(100, Math.round((completed / total) * 100));
 }
