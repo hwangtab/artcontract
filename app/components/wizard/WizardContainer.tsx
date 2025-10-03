@@ -77,8 +77,8 @@ export default function WizardContainer() {
 
   // 위험 조건 자동 감지 (중복 방지)
   useEffect(() => {
-    // 금액 위험 감지
-    if (formData.payment?.amount !== undefined) {
+    // 금액 위험 감지 - Step 5 이상에서만
+    if (currentStep >= 5 && formData.payment?.amount !== undefined) {
       const warningId = `payment_${formData.payment.amount}`;
 
       if (!shownWarnings.has(warningId)) {
@@ -93,8 +93,8 @@ export default function WizardContainer() {
       }
     }
 
-    // 수정 횟수 위험 감지
-    if (formData.revisions !== undefined && formData.revisions !== null) {
+    // 수정 횟수 위험 감지 - Step 6 이상에서만
+    if (currentStep >= 6 && formData.revisions !== undefined && formData.revisions !== null) {
       const revisionId = `revisions_${formData.revisions}`;
 
       if (!shownWarnings.has(revisionId)) {
@@ -111,8 +111,8 @@ export default function WizardContainer() {
       }
     }
 
-    // 마감일 위험 감지
-    if (formData.timeline?.deadline) {
+    // 마감일 위험 감지 - Step 4 이상에서만
+    if (currentStep >= 4 && formData.timeline?.deadline) {
       const deadline = new Date(formData.timeline.deadline);
       const today = new Date();
       const daysUntilDeadline = Math.floor((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -129,8 +129,8 @@ export default function WizardContainer() {
       }
     }
 
-    // 상업적 사용 경고
-    if (formData.commercialUse && formData.payment?.amount) {
+    // 상업적 사용 경고 - Step 8 이상에서만
+    if (currentStep >= 8 && formData.commercialUse && formData.payment?.amount) {
       const commercialId = `commercial_${formData.payment.amount}`;
       const suggestedMin = formData.aiAnalysis?.suggestedPriceRange?.min || 0;
 
@@ -140,8 +140,8 @@ export default function WizardContainer() {
       }
     }
 
-    // 독점권 경고
-    if (formData.exclusiveRights && formData.payment?.amount) {
+    // 독점권 경고 - Step 8 이상에서만
+    if (currentStep >= 8 && formData.exclusiveRights && formData.payment?.amount) {
       const exclusiveId = `exclusive_${formData.payment.amount}`;
       const suggestedMin = formData.aiAnalysis?.suggestedPriceRange?.min || 0;
 
@@ -150,7 +150,7 @@ export default function WizardContainer() {
         setShownWarnings(prev => new Set(prev).add(exclusiveId));
       }
     }
-  }, [formData, addProactiveMessage, shownWarnings]);
+  }, [formData, addProactiveMessage, shownWarnings, currentStep]);
 
   const handleGenerateContract = async () => {
     // 템플릿 가져오기
@@ -232,6 +232,7 @@ export default function WizardContainer() {
             onUpdate={(startDate, deadline) =>
               updateFormData({ timeline: { startDate, deadline } })
             }
+            onAICoach={(message) => addProactiveMessage(message, 'info')}
           />
         );
       case 5:
@@ -245,6 +246,7 @@ export default function WizardContainer() {
               })
             }
             suggestedPriceRange={formData.aiAnalysis?.suggestedPriceRange}
+            onAICoach={(message) => addProactiveMessage(message, 'info')}
           />
         );
       case 6:
@@ -256,6 +258,7 @@ export default function WizardContainer() {
             onUpdate={(revisions, additionalFee) =>
               updateFormData({ revisions, additionalRevisionFee: additionalFee })
             }
+            onAICoach={(message) => addProactiveMessage(message, 'info')}
           />
         );
       case 7:

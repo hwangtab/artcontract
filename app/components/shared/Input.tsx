@@ -6,6 +6,7 @@ interface InputProps {
   label?: string;
   value: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
   placeholder?: string;
   type?: 'text' | 'number' | 'email' | 'tel' | 'date';
   error?: string;
@@ -19,6 +20,7 @@ export default function Input({
   label,
   value,
   onChange,
+  onBlur,
   placeholder,
   type = 'text',
   error,
@@ -51,6 +53,7 @@ export default function Input({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
         placeholder={placeholder}
         disabled={disabled}
         required={required}

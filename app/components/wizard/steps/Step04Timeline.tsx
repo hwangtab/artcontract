@@ -13,15 +13,17 @@ interface Step04Props {
   deadline?: Date;
   aiAnalysis?: WorkAnalysis;
   onUpdate: (startDate?: Date, deadline?: Date) => void;
+  onAICoach?: (message: string) => void;
 }
 
-export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpdate }: Step04Props) {
+export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpdate, onAICoach }: Step04Props) {
   const [startInput, setStartInput] = useState(
     startDate ? startDate.toISOString().split('T')[0] : ''
   );
   const [deadlineInput, setDeadlineInput] = useState(
     deadline ? deadline.toISOString().split('T')[0] : ''
   );
+  const [hasCoached, setHasCoached] = useState(false);
 
   // AI 추천 마감일 계산
   const getRecommendedDeadline = () => {
@@ -57,6 +59,33 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
       onUpdate(startDate, date);
     } else {
       onUpdate(startDate, undefined);
+    }
+  };
+
+  const handleDeadlineBlur = () => {
+    if (!deadline || hasCoached || !onAICoach) return;
+
+    const today = new Date();
+    const days = calculateDaysBetween(today, deadline);
+    let coachMessage = '';
+
+    if (isToday(deadline)) {
+      coachMessage = '🚨 오늘 마감이요?! 정말 촉박해요! 이런 긴급 작업은 러시 비용(기본 금액의 50% 이상)을 꼭 받으세요. 건강도 챙기면서 일하세요!';
+    } else if (isTomorrow(deadline)) {
+      coachMessage = '⚠️ 내일 마감! 매우 촉박한 일정이에요. 러시 비용(30-50% 추가)을 받거나 기한 연장을 요청하세요!';
+    } else if (days <= 3) {
+      coachMessage = `⏰ ${days}일 안에 마감이에요! 촉박한 일정이니 러시 비용(20-30% 추가)을 받는 걸 추천해요.`;
+    } else if (days <= 7) {
+      coachMessage = `📅 일주일 이내 마감이군요. 약간 촉박한 일정이에요. 러시 비용(10-20% 추가)을 고려해보세요.`;
+    } else if (days >= 30) {
+      coachMessage = `📆 ${days}일간 진행되는 장기 프로젝트네요! 2주마다 중간 점검 일정을 넣고, 중도금을 받는 걸 추천해요.`;
+    } else {
+      coachMessage = `✅ ${days}일! 적정한 작업 기간이에요. 예상치 못한 문제를 고려해서 여유있게 일정을 잡으셨네요!`;
+    }
+
+    if (coachMessage) {
+      onAICoach(coachMessage);
+      setHasCoached(true);
     }
   };
 
@@ -156,6 +185,7 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
               type="date"
               value={deadlineInput}
               onChange={(e) => handleDeadlineChange(e.target.value)}
+              onBlur={handleDeadlineBlur}
               className="w-full h-12 px-4 rounded-lg border-2 border-gray-300 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
               required
             />

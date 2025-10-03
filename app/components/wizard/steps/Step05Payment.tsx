@@ -11,6 +11,7 @@ interface Step05Props {
   deposit?: number;
   onUpdate: (amount?: number, deposit?: number) => void;
   suggestedPriceRange?: { min: number; max: number };
+  onAICoach?: (message: string) => void;
 }
 
 export default function Step05Payment({
@@ -18,18 +19,11 @@ export default function Step05Payment({
   deposit,
   onUpdate,
   suggestedPriceRange,
+  onAICoach,
 }: Step05Props) {
   const [amountInput, setAmountInput] = useState(amount ? amount.toString() : '');
   const [depositInput, setDepositInput] = useState(deposit ? deposit.toString() : '');
-  const [showWarning, setShowWarning] = useState(false);
-
-  useEffect(() => {
-    if (!amount || amount === 0) {
-      setShowWarning(true);
-    } else {
-      setShowWarning(false);
-    }
-  }, [amount]);
+  const [hasCoached, setHasCoached] = useState(false);
 
   const handleAmountChange = (value: string) => {
     setAmountInput(value);
@@ -54,6 +48,30 @@ export default function Step05Payment({
     onUpdate(value, deposit);
   };
 
+  const handleAmountBlur = () => {
+    if (!amount || hasCoached || !onAICoach) return;
+
+    let coachMessage = '';
+
+    if (amount === 0) {
+      coachMessage = '💰 0원은 안 돼요! 무료 작업이더라도 최소 금액(1만원)을 명시해야 법적 보호를 받을 수 있어요.';
+    } else if (amount > 0 && amount < 50000) {
+      coachMessage = `💡 ${formatCurrency(amount)}은 조금 낮은 금액이에요. 시간과 노력을 고려하면 최소 5만원 이상 받으시는 걸 추천해요.`;
+    } else if (amount >= 50000 && amount < 100000) {
+      coachMessage = `👍 ${formatCurrency(amount)}이시군요! 적정한 금액이에요. 작업 시작 전에 일부를 선금으로 받으면 더 안전해요.`;
+    } else if (amount >= 100000 && amount < 1000000) {
+      const recommendedDeposit = Math.floor(amount * 0.3);
+      coachMessage = `💼 ${formatCurrency(amount)}! 계약금 ${formatCurrency(recommendedDeposit)}(30%)를 먼저 받으시는 걸 추천해요. 계약 이행을 보증하는 역할을 해요.`;
+    } else if (amount >= 1000000) {
+      coachMessage = `🏆 ${formatCurrency(amount)}! 고액 계약이에요. 법률 전문가 검토를 받는 걸 강력히 추천해요. 한국저작권위원회(02-2669-0100)에 무료 상담을 신청하세요!`;
+    }
+
+    if (coachMessage) {
+      onAICoach(coachMessage);
+      setHasCoached(true);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -68,6 +86,7 @@ export default function Step05Payment({
             type="number"
             value={amountInput}
             onChange={handleAmountChange}
+            onBlur={handleAmountBlur}
             placeholder="500000"
             helper="원 단위로 입력하세요"
             required
@@ -112,13 +131,12 @@ export default function Step05Payment({
           </div>
         )}
 
-        {showWarning && (
-          <WarningBanner
-            severity="danger"
-            message="금액이 정해지지 않았어요!"
-            suggestion="금액 없이 일을 시작하면 나중에 분쟁 위험이 정말 높아요. 최소한 대략적인 금액이라도 정하세요."
-            dismissible={false}
-          />
+        {!amount && amountInput === '' && (
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-800">
+              💡 <strong>팁:</strong> 금액은 계약서에서 가장 중요한 부분이에요. 시장 가격을 참고해서 적정한 금액을 정하세요!
+            </p>
+          </div>
         )}
       </div>
     </div>

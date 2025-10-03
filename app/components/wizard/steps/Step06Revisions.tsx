@@ -13,6 +13,7 @@ interface Step06Props {
   additionalRevisionFee?: number;
   aiAnalysis?: WorkAnalysis;
   onUpdate: (revisions?: number | 'unlimited' | null, additionalFee?: number) => void;
+  onAICoach?: (message: string) => void;
 }
 
 export default function Step06Revisions({
@@ -20,6 +21,7 @@ export default function Step06Revisions({
   additionalRevisionFee,
   aiAnalysis,
   onUpdate,
+  onAICoach,
 }: Step06Props) {
   // AI 추천 수정 횟수 계산
   const getRecommendedRevisions = () => {
@@ -53,6 +55,7 @@ export default function Step06Revisions({
   const [feeInput, setFeeInput] = useState(
     additionalRevisionFee ? additionalRevisionFee.toString() : ''
   );
+  const [hasCoached, setHasCoached] = useState(false);
 
   const presetOptions = [
     { value: 2, label: '✌️ 2회', description: '간단한 작업에 적합', recommended: false },
@@ -64,6 +67,22 @@ export default function Step06Revisions({
     setShowUnlimited(false);
     setShowCustomInput(false);
     onUpdate(value, additionalRevisionFee);
+
+    // AI 코칭
+    if (!hasCoached && onAICoach) {
+      let coachMessage = '';
+      if (value === 2) {
+        coachMessage = '✌️ 2회 수정이시군요! 간단한 작업에 적합해요. 대폭 변경이 필요하면 별도 비용을 받으세요!';
+      } else if (value === 3) {
+        coachMessage = '🖐️ 3회 수정! 완벽한 선택이에요. 대부분의 경우 3회면 충분하고, 추가 수정은 회당 비용을 받으시면 돼요.';
+      } else if (value === 5) {
+        coachMessage = '🤚 5회 수정이시군요. 넉넉한 범위예요. 추가 수정 비용도 꼭 명시하세요!';
+      }
+      if (coachMessage) {
+        onAICoach(coachMessage);
+        setHasCoached(true);
+      }
+    }
   };
 
   const handleCustomInput = () => {
@@ -87,6 +106,12 @@ export default function Step06Revisions({
       setShowUnlimited(true);
       setShowCustomInput(false);
       onUpdate('unlimited', additionalRevisionFee);
+
+      // AI 코칭 - 무제한 선택 시 강력 경고
+      if (!hasCoached && onAICoach) {
+        onAICoach('🚨 무제한 수정은 정말 위험해요! 클라이언트가 끊임없이 수정을 요구해서 시간과 에너지를 다 소진할 수 있어요. 반드시 횟수를 제한하시고, 추가 수정은 별도 비용을 받으세요!');
+        setHasCoached(true);
+      }
     }
   };
 
