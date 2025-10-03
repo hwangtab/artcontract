@@ -73,27 +73,28 @@ export default function Step05Payment({
   };
 
   const handleAmountBlur = () => {
-    if (!amount || hasCoached || !onAICoach) return;
+    if (!onAICoach) return;
+
+    const parsedAmount = parseInt(amountInput.replace(/[^\d]/g, ''), 10);
+    if (Number.isNaN(parsedAmount) || parsedAmount <= 0) return;
 
     let coachMessage = '';
 
-    if (amount === 0) {
-      coachMessage = '💰 0원은 안 돼요! 무료 작업이더라도 최소 금액(1만원)을 명시해야 법적 보호를 받을 수 있어요.';
-    } else if (amount > 0 && amount < 50000) {
-      coachMessage = `💡 ${formatCurrency(amount)}은 조금 낮은 금액이에요. 시간과 노력을 고려하면 최소 5만원 이상 받으시는 걸 추천해요.`;
-    } else if (amount >= 50000 && amount < 100000) {
-      coachMessage = `👍 ${formatCurrency(amount)}이시군요! 적정한 금액이에요. 작업 시작 전에 일부를 선금으로 받으면 더 안전해요.`;
-    } else if (amount >= 100000 && amount < 1000000) {
-      const recommendedDeposit = Math.floor(amount * 0.3);
-      coachMessage = `💼 ${formatCurrency(amount)}! 계약금 ${formatCurrency(recommendedDeposit)}(30%)를 먼저 받으시는 걸 추천해요. 계약 이행을 보증하는 역할을 해요.`;
-    } else if (amount >= 1000000) {
-      coachMessage = `🏆 ${formatCurrency(amount)}! 고액 계약이에요. 법률 전문가 검토를 받는 걸 강력히 추천해요. 한국저작권위원회(02-2669-0100)에 무료 상담을 신청하세요!`;
+    if (parsedAmount < 50000) {
+      coachMessage = `💡 ${formatCurrency(parsedAmount)}은 조금 낮은 금액이에요. 시간과 노력을 고려하면 최소 5만원 이상 받으시는 걸 추천해요.`;
+    } else if (parsedAmount < 100000) {
+      coachMessage = `👍 ${formatCurrency(parsedAmount)}이시군요! 적정한 금액이에요. 작업 시작 전에 일부를 선금으로 받으면 더 안전해요.`;
+    } else if (parsedAmount < 1000000) {
+      const recommendedDeposit = Math.floor(parsedAmount * 0.3);
+      coachMessage = `💼 ${formatCurrency(parsedAmount)}! 계약금 ${formatCurrency(recommendedDeposit)}(30%)를 먼저 받으시는 걸 추천해요. 계약 이행을 보증하는 역할을 해요.`;
+    } else {
+      coachMessage = `🏆 ${formatCurrency(parsedAmount)}! 고액 계약이에요. 법률 전문가 검토를 받는 걸 강력히 추천해요. 한국저작권위원회(02-2669-0100)에 무료 상담을 신청하세요!`;
     }
 
-    if (coachMessage) {
-      onAICoach(coachMessage);
-      setHasCoached(true);
-    }
+    if (!coachMessage || hasCoached) return;
+
+    onAICoach(coachMessage);
+    setHasCoached(true);
   };
 
   const handleApplyItemsTotal = () => {

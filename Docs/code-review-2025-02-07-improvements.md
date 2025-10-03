@@ -11,20 +11,20 @@
 - ConfirmModal 도입으로 접근성이 개선되고, 테스트 커버리지도 12 suites/135 tests로 유지되고 있습니다.
 
 ## 개선 포인트
-1. **Risk Detector 총액 합산 조건**  
-   - 위치: `lib/contract/risk-detector.ts:22-44, 69-84`  
-   - 문제: 완성도 가중치는 workItems 유무를 반영하지만, `itemsTotal` 계산은 여전히 `subtotal ? ...` 조건을 사용해 0원 항목을 누락합니다. Step05에서 0원 항목을 허용했으므로 동일하게 `subtotal !== undefined` 비교로 수정해야 일관성이 맞습니다.  
-   - 제안: `subtotal !== undefined ? sum + subtotal : sum`으로 변경하고, 필요 시 0원 항목에 대한 별도 경고를 추가하세요.
+1. **코칭 메시지가 최신 입력을 인지하지 못함 (마감일)**  
+   - 위치: `app/components/wizard/steps/Step04Timeline.tsx:75-104`  
+   - 문제: 마감일을 입력 후 바로 blur 하면 `handleDeadlineBlur`가 아직 업데이트되지 않은 `deadline` prop을 참조하여 코칭 메시지를 띄우지 못합니다.  
+   - 제안: `deadlineInput` 값 또는 `new Date(value)`를 기반으로 코칭을 트리거하거나, `onUpdate` 내부에서 코칭 로직을 실행해 최신 값에 접근하세요.
 
-2. **API 타입 안전성 부족**  
-   - 위치: `types/api.ts:29`  
-   - 문제: `ChatRequest.context.formData`가 `any`로 선언돼 있어, 새로운 필드가 추가될 때 타입 안전성이 떨어집니다.  
-   - 제안: `ContractFormData` 또는 최소한 필요한 필드만 포함한 타입으로 변경해 런타임 오류를 줄이세요.
+2. **코칭 메시지가 최신 입력을 인지하지 못함 (금액)**  
+   - 위치: `app/components/wizard/steps/Step05Payment.tsx:75-97`  
+   - 문제: 금액 입력 후 blur 하면 `amount` prop이 아직 이전 값이어서 코칭 메시지가 호출되지 않습니다.  
+   - 제안: `handleAmountBlur`에서 `amountInput`을 숫자로 변환해 사용하거나, `handleAmountChange`에서 코칭 로직을 실행해 최신 값 기준으로 안내하세요.
 
-3. **withApiHandler JSON 에러 감지 조건**  
-   - 위치: `lib/api/withApiHandler.ts:34-59`  
-   - 문제: 단순히 메시지에 'JSON' 문자열이 포함되는지 여부로 판단합니다. 일부 런타임은 다른 메시지를 반환할 수 있어 누락 가능성이 있습니다.  
-   - 제안: `SyntaxError`뿐 아니라 `TypeError` 케이스 등도 포괄적으로 핸들링하거나, 핸들러에서 직접 400을 반환하도록 구성해 정확도를 높여주세요.
+3. **위험 감지 합계 차이 경고**  
+   - 위치: `lib/contract/risk-detector.ts:69-104`  
+   - 문제: `itemsTotal`은 이제 0원을 포함하지만, `work_items_amount_mismatch` 경고는 총액과 항목 합계의 상대 차이를 기준으로 합니다. 총액이 0원이고 항목 합계가 0이 아닌 경우만 경고가 나와, 총액 변경을 잊었을 때 즉시 인지하기 어렵습니다.  
+   - 제안: `Math.abs(amount - itemsTotal) >= 1000` 같은 절대 차이 기준을 추가하거나, 0/0 케이스를 별도로 처리해 사용자가 총액을 재확인하도록 유도하세요.
 
 ## 테스트
 - `npm test` (12 suites, 135 tests) 성공.

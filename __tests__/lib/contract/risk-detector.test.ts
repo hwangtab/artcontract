@@ -37,6 +37,23 @@ describe('detectContractRisks', () => {
       );
     });
 
+
+    test('항목 합계와 총액 차이가 10만원 이상이면 경고', () => {
+      const formData: ContractFormData = {
+        field: 'music',
+        workItems: [
+          { id: 'compose', title: '작곡', subtotal: 300000 },
+        ],
+        payment: { amount: 100000, currency: 'KRW' },
+        revisions: 3,
+      };
+
+      const result = detectContractRisks(formData);
+
+      expect(result.warnings).toContainEqual(
+        expect.objectContaining({ id: 'work_items_amount_mismatch' })
+      );
+    });
     test('금액이 5만원 미만인 경우 극저가 경고', () => {
       const formData: ContractFormData = {
         field: 'design',

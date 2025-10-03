@@ -234,7 +234,8 @@ export function detectContractRisks(
 
     if (itemsTotal > 0 && amount > 0) {
       const diffRatio = Math.abs(amount - itemsTotal) / itemsTotal;
-      if (diffRatio >= 0.25) {
+      const diffAbsolute = Math.abs(amount - itemsTotal);
+      if (diffRatio >= 0.25 || diffAbsolute >= 100000) {
         warnings.push({
           id: 'work_items_amount_mismatch',
           severity: 'warning',

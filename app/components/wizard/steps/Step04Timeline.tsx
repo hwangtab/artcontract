@@ -71,15 +71,18 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
   };
 
   const handleDeadlineBlur = () => {
-    if (!deadline || hasCoached || !onAICoach) return;
+    if (!deadlineInput || hasCoached || !onAICoach) return;
+
+    const parsedDeadline = new Date(deadlineInput);
+    if (Number.isNaN(parsedDeadline.getTime())) return;
 
     const today = new Date();
-    const days = calculateDaysBetween(today, deadline);
+    const days = calculateDaysBetween(today, parsedDeadline);
     let coachMessage = '';
 
-    if (isToday(deadline)) {
+    if (isToday(parsedDeadline)) {
       coachMessage = '🚨 오늘 마감이요?! 정말 촉박해요! 이런 긴급 작업은 러시 비용(기본 금액의 50% 이상)을 꼭 받으세요. 건강도 챙기면서 일하세요!';
-    } else if (isTomorrow(deadline)) {
+    } else if (isTomorrow(parsedDeadline)) {
       coachMessage = '⚠️ 내일 마감! 매우 촉박한 일정이에요. 러시 비용(30-50% 추가)을 받거나 기한 연장을 요청하세요!';
     } else if (days <= 3) {
       coachMessage = `⏰ ${days}일 안에 마감이에요! 촉박한 일정이니 러시 비용(20-30% 추가)을 받는 걸 추천해요.`;
