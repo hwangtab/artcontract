@@ -71,13 +71,13 @@ export default function Step00ArtistInfo({
           </h3>
 
           <Input
-            label="주민등록번호 뒷자리 또는 사업자번호"
+            label="주민등록번호 또는 사업자번호"
             value={artistIdNumber || ''}
             onChange={(value) =>
               onUpdate({ artistName, artistContact, artistIdNumber: value, artistAddress })
             }
-            placeholder="예: 1234567 또는 123-45-67890"
-            helper="고액 계약(100만원 이상) 시 권장"
+            placeholder="예: 850101-1234567 또는 123-45-67890"
+            helper="법적 효력을 위해 전체 번호 입력을 권장합니다"
           />
 
           <Input
