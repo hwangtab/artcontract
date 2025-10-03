@@ -6,6 +6,7 @@ import Input from '../../shared/Input';
 import Button from '../../shared/Button';
 import LoadingSpinner from '../../shared/LoadingSpinner';
 import Toast from '../../shared/Toast';
+import ErrorBanner from '../../shared/ErrorBanner';
 import { ArtField, WorkAnalysis } from '@/types/contract';
 import { Sparkles, Check, AlertTriangle } from 'lucide-react';
 
@@ -28,7 +29,8 @@ export default function Step02WorkDetail({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<WorkAnalysis | null>(aiAnalysis || null);
   const [showQuickOptions, setShowQuickOptions] = useState(false);
-  const [showErrorToast, setShowErrorToast] = useState(false);
+  const [showErrorBanner, setShowErrorBanner] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const quickExamples: Record<ArtField, string[]> = {
     design: ['카페 로고 디자인', '웨딩 초대장 디자인', 'SNS 홍보 이미지', '명함 디자인'],
@@ -60,17 +62,18 @@ export default function Step02WorkDetail({
 
       if (data.success && data.data) {
         setAnalysisResult(data.data);
+        setShowErrorBanner(false);
         onSelect(userInput.trim(), userInput.trim(), data.data);
       } else {
-        // AI 실패 시 사용자에게 알림
-        setShowErrorToast(true);
-        onSelect(userInput.trim(), userInput.trim());
+        // AI 실패 시 ErrorBanner 표시
+        setErrorMessage('AI 분석에 실패했어요. 네트워크 상태를 확인하고 다시 시도해주세요.');
+        setShowErrorBanner(true);
       }
     } catch (error) {
       console.error('Analysis failed:', error);
-      // AI 실패 시 사용자에게 알림
-      setShowErrorToast(true);
-      onSelect(userInput.trim(), userInput.trim());
+      // AI 실패 시 ErrorBanner 표시
+      setErrorMessage('AI 분석 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.');
+      setShowErrorBanner(true);
     } finally {
       setIsAnalyzing(false);
     }
@@ -265,6 +268,15 @@ export default function Step02WorkDetail({
           </div>
         )}
 
+        {/* AI 분석 실패 ErrorBanner */}
+        {showErrorBanner && (
+          <ErrorBanner
+            message={errorMessage}
+            onRetry={handleAIAnalysis}
+            retryLabel="다시 분석하기"
+          />
+        )}
+
         {/* 도움말 */}
         <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
           <p className="text-sm text-blue-800">
@@ -273,16 +285,6 @@ export default function Step02WorkDetail({
           </p>
         </div>
       </div>
-
-      {/* AI 분석 실패 Toast */}
-      {showErrorToast && (
-        <Toast
-          message="AI 분석에 실패했어요. 네트워크 상태를 확인하고 다시 시도해주세요."
-          type="error"
-          duration={5000}
-          onClose={() => setShowErrorToast(false)}
-        />
-      )}
     </div>
   );
 }

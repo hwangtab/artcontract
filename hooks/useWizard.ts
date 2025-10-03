@@ -23,7 +23,7 @@ export function useWizard() {
     formData: initialFormData,
     isComplete: false,
     canGoNext: false,  // 작가 정보 입력 전까지 진행 불가
-    canGoPrev: false,
+    canGoPrev: true,   // Step0에서도 "처음부터 다시" 가능
     completeness: 0,
     visitedSteps: [0],  // Step0부터
   });
@@ -123,14 +123,31 @@ export function useWizard() {
   // 이전 단계
   const prevStep = useCallback(() => {
     setState((prev) => {
-      if (prev.currentStep <= 1) return prev;
+      // Step0에서 뒤로가기: 확인 후 리셋
+      if (prev.currentStep === 0) {
+        if (typeof window !== 'undefined' &&
+            window.confirm('처음부터 다시 시작하시겠어요? 입력한 정보가 모두 삭제됩니다.')) {
+          return {
+            currentStep: 0,
+            formData: initialFormData,
+            isComplete: false,
+            canGoNext: false,
+            canGoPrev: false,
+            completeness: 0,
+            visitedSteps: [0],
+          };
+        }
+        return prev;
+      }
+
+      if (prev.currentStep < 1) return prev;
 
       const prevStep = prev.currentStep - 1;
 
       return {
         ...prev,
         currentStep: prevStep,
-        canGoPrev: prevStep > 1,
+        canGoPrev: true,  // 항상 뒤로 갈 수 있음
         canGoNext: true,
         isComplete: false,
         formData: {

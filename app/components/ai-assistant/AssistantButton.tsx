@@ -17,11 +17,29 @@ export default function AssistantButton({
   return (
     <button
       onClick={onClick}
-      className={`fixed bottom-6 right-6 w-16 h-16 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center z-50 ${
-        isOpen
+      className={`
+        fixed
+        bottom-20 md:bottom-6
+        right-4 md:right-6
+        w-16 h-16 md:w-14 md:h-14
+        rounded-full
+        shadow-lg
+        transition-all
+        duration-300
+        flex
+        items-center
+        justify-center
+        z-50
+        touch-manipulation
+        ${isOpen
           ? 'bg-gray-600 hover:bg-gray-700'
           : 'bg-primary-500 hover:bg-primary-600 hover:scale-110'
-      }`}
+        }
+      `}
+      style={{
+        // iOS Safe Area 고려
+        bottom: 'max(1.25rem, env(safe-area-inset-bottom, 0px) + 0.5rem)',
+      }}
       aria-label={isOpen ? 'AI 도우미 닫기' : 'AI 도우미 열기'}
     >
       {isOpen ? (
