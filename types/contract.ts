@@ -62,10 +62,10 @@ export interface ContractFormData {
   exclusiveRights?: boolean;
 
   // Step 6.5: 저작권 (선택사항)
-  copyrightTerms?: any;  // CopyrightTerms가 아래에 정의됨
+  copyrightTerms?: CopyrightTerms;
 
   // Step 8: 보호 조항 (선택사항)
-  protectionClauses?: any;  // ProtectionClauses가 아래에 정의됨
+  protectionClauses?: ProtectionClauses;
 
   // Step 9: 추가 조항
   additionalClauses?: string[];
