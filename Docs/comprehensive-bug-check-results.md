@@ -314,9 +314,40 @@ Gemini 리뷰에서 지적된 2개 이슈:
 
 ## 🎯 즉시 수정 필요 항목 Top 5
 
-### 결과: **없음** ✅
+### 2025-01-03 업데이트: **1개 발견 및 수정 완료** ✅
 
-**모든 핵심 기능이 정상 작동합니다!**
+#### 1. **🔴 Critical: AI 분석 usageScope 타입 불일치** (수정 완료)
+
+**파일**: `lib/ai/openrouter-client.ts:96`
+
+**문제**:
+- AI 프롬프트: `"usageScope": "personal|commercial|..."` (문자열)
+- 실제 타입: `usageScope: UsageScope[]` (배열)
+- AI 응답 JSON 파싱 실패 → **화면에 결과 표시 안 됨**
+
+**재현 시나리오**:
+1. Step02에서 "5곡의 작곡, 편곡, 믹싱, 마스터링" 입력
+2. "🤖 AI 분석하기" 클릭
+3. 11초 대기 (API 200 OK)
+4. 화면에 아무것도 표시 안 됨 ❌
+
+**수정 내용**:
+```typescript
+// Before:
+"usageScope": "personal|commercial|online|print|unlimited",
+
+// After:
+"usageScope": ["personal", "commercial", "online", "print"] 중 해당하는 것들 배열로,
+"estimatedDays": 7,  // 추가
+```
+
+**상태**: ✅ **수정 완료** (Commit: ad72fe4)
+
+---
+
+### 이전 평가: **없음** ✅
+
+~~**모든 핵심 기능이 정상 작동합니다!**~~ → **1개 Critical 버그 발견 및 수정 완료**
 
 ---
 
