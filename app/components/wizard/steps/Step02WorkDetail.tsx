@@ -13,7 +13,7 @@ interface Step02Props {
   workType?: string;
   workDescription?: string;
   workItems?: WorkItem[];
-  aiAnalysis?: WorkAnalysis;
+  aiAnalysis?: WorkAnalysis | null;
   onUpdate: (data: {
     workType?: string;
     workDescription?: string;
@@ -63,8 +63,17 @@ function createEmptyItem(title = ''): WorkItemDraft {
 
 function toNumber(value?: string): number | undefined {
   if (!value) return undefined;
-  const parsed = Number(value.replace(/[^\d.]/g, ''));
-  return Number.isNaN(parsed) ? undefined : parsed;
+
+  // 쉼표 제거 후 parseFloat
+  const cleaned = value.replace(/,/g, '');
+  const parsed = parseFloat(cleaned);
+
+  // NaN 체크 + 유효한 숫자인지 확인
+  if (Number.isNaN(parsed) || !Number.isFinite(parsed)) {
+    return undefined;
+  }
+
+  return parsed;
 }
 
 export default function Step02WorkDetail({
@@ -171,6 +180,21 @@ export default function Step02WorkDetail({
   const handleAIAnalysis = async () => {
     if (!descriptionInput.trim()) return;
 
+    // 중복 체크: 동일한 description을 가진 항목이 이미 있는지 확인
+    const duplicateItem = items.find(
+      (item) => item.description?.trim().toLowerCase() === descriptionInput.trim().toLowerCase()
+    );
+
+    if (duplicateItem) {
+      // 중복 항목 발견 시 사용자에게 확인
+      const shouldProceed = window.confirm(
+        `"${duplicateItem.title}" 항목이 이미 존재합니다.\n\n같은 내용으로 새 항목을 추가하시겠어요?`
+      );
+      if (!shouldProceed) {
+        return;
+      }
+    }
+
     setIsAnalyzing(true);
 
     try {
@@ -200,6 +224,8 @@ export default function Step02WorkDetail({
           aiAnalysis: result,
           workDescription: descriptionInput.trim(),
         });
+        // 성공 후 입력창 초기화 (중복 방지)
+        setDescriptionInput('');
       } else {
         setErrorMessage('AI 분석에 실패했어요. 네트워크 상태를 확인하고 다시 시도해주세요.');
         setShowErrorBanner(true);

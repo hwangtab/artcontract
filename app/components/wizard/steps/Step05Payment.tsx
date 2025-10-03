@@ -132,7 +132,34 @@ export default function Step05Payment({
             </div>
             <Button size="small" onClick={handleApplyItemsTotal}>
               합계 금액 적용
+              {amount !== itemsTotal && (
+                <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">변경됨</span>
+              )}
             </Button>
+          </div>
+        )}
+
+        {itemsTotal > 0 && amount !== undefined && amount !== itemsTotal && (
+          <div className="p-4 bg-amber-50 rounded-lg border-2 border-amber-300">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div className="flex-1">
+                <p className="font-semibold text-amber-900 mb-1">금액 불일치 경고</p>
+                <p className="text-sm text-amber-800 mb-2">
+                  현재 총액 <strong>{formatCurrency(amount)}</strong>이(가) 작업 항목 합계 <strong>{formatCurrency(itemsTotal)}</strong>와(과) 다릅니다.
+                </p>
+                <p className="text-xs text-amber-700 mb-3">
+                  항목별 금액이 변경되었다면 총액도 함께 업데이트하는 것을 권장합니다.
+                </p>
+                <Button
+                  size="small"
+                  variant="primary"
+                  onClick={handleApplyItemsTotal}
+                >
+                  작업 항목 합계({formatCurrency(itemsTotal)})로 자동 업데이트
+                </Button>
+              </div>
+            </div>
           </div>
         )}
 

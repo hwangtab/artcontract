@@ -447,3 +447,73 @@ git push origin main
 **"모든 창작자가 자신의 작품으로 정당하게 인정받고, 공정한 대가를 받으며, 안전하게 일할 수 있는 세상을 만들어갑시다."**
 
 This project is not just a web app—it's a shield protecting artists' rights, resistance against unfair practices, and a step toward a world where all creators are respected.
+
+---
+
+## Development History Updates
+
+### When to Update
+**각 Phase 완료 시** `Docs/development-history.md` 를 업데이트해야 합니다:
+- 새로운 기능 구현
+- 리팩토링 완료
+- 버그 수정 (중요한 경우)
+- 외부 리뷰 반영
+- 성능 최적화
+- 테스트 추가
+
+### Update Format
+다음 템플릿을 사용하여 작성:
+
+```markdown
+### Phase X: [작업 제목] (YYYY-MM-DD)
+
+**커밋**: `[commit-hash]` - [커밋 메시지]
+
+**목표**: [이번 Phase의 주요 목표]
+
+**주요 작업**:
+1. **[작업 1 제목]** ([파일명])
+   - 변경 내용 설명
+   - Before/After 코드 예시 (선택)
+
+2. **[작업 2 제목]**
+   - ...
+
+**기술적 개선** (선택):
+- ✅ [개선사항 1]
+- ✅ [개선사항 2]
+
+**사용자 경험** (선택):
+- ✅ [UX 개선사항 1]
+
+**효과**:
+- ✅ [성과 1]
+- ✅ [성과 2]
+
+**빌드 결과** (중요한 변경 시):
+```
+[npm run build 결과]
+```
+
+**테스트 결과** (테스트 추가 시):
+```
+[npm test 결과]
+```
+
+---
+```
+
+### Important Notes
+1. **Phase 번호는 연속적으로 증가**시킵니다 (Phase 10 → Phase 11 → ...)
+2. **날짜는 YYYY-MM-DD 형식**으로 작성합니다
+3. **커밋 해시는 작업 완료 후** 업데이트합니다 (커밋 전엔 "(예정)" 표시)
+4. **Before/After 코드**는 중요한 변경사항에만 포함합니다 (가독성 우선)
+5. **빌드/테스트 결과**는 중대한 변경 시에만 포함합니다
+
+### Example Checklist
+Phase 완료 시 확인:
+- [ ] development-history.md에 새 섹션 추가
+- [ ] 커밋 메시지 작성 (conventional commits)
+- [ ] Git commit 실행
+- [ ] development-history.md에 커밋 해시 업데이트
+- [ ] 필요 시 CLAUDE.md 업데이트 (구조 변경 등)

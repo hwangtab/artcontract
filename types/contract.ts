@@ -15,6 +15,8 @@ export interface WorkItem {
   quantity?: number;
   unitPrice?: number;
   subtotal?: number;
+  // 향후 기능: 항목별 개별 일정 관리 (현재 미사용)
+  // Step02 또는 Step04와 연동하여 항목별 마일스톤 설정 가능하도록 확장 예정
   timeline?: {
     startDate?: Date;
     deadline?: Date;
@@ -43,7 +45,7 @@ export interface ContractFormData {
   // Step 2: 작업 상세
   workType?: string;
   workDescription?: string;
-  aiAnalysis?: WorkAnalysis;
+  aiAnalysis?: WorkAnalysis | null;
 
   // Step 3: 클라이언트 정보 (갑)
   clientType?: ClientType;
