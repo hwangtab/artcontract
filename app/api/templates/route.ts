@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GetTemplateRequest, GetTemplateResponse } from '@/types/api';
+import { generalRateLimiter, getClientIp } from '@/lib/utils/rate-limiter';
 
 // 템플릿 데이터 (나중에 GitHub에서 로드)
 const templates = {
@@ -247,6 +248,34 @@ const templates = {
 };
 
 export async function GET(request: NextRequest) {
+  // Rate Limiting 체크
+  const clientIp = getClientIp(request);
+  const rateLimitResult = generalRateLimiter.check(clientIp);
+
+  if (!rateLimitResult.success) {
+    const retryAfter = Math.ceil((rateLimitResult.reset - Date.now()) / 1000);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'RATE_LIMIT_EXCEEDED',
+          message: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
+        },
+        timestamp: new Date().toISOString(),
+      } as GetTemplateResponse,
+      {
+        status: 429,
+        headers: {
+          'Retry-After': retryAfter.toString(),
+          'X-RateLimit-Limit': '30',
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+        },
+      }
+    );
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const field = searchParams.get('field');
