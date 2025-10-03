@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Input from '../../shared/Input';
 import Button from '../../shared/Button';
 import AIRecommendationBanner from '../../shared/AIRecommendationBanner';
 import { formatCurrency } from '@/lib/utils/currency-format';
+import { WorkItem } from '@/types/contract';
 
 interface Step05Props {
   amount?: number;
@@ -12,6 +13,7 @@ interface Step05Props {
   onUpdate: (amount?: number, deposit?: number) => void;
   suggestedPriceRange?: { min: number; max: number };
   onAICoach?: (message: string) => void;
+  workItems?: WorkItem[];
 }
 
 export default function Step05Payment({
@@ -20,10 +22,30 @@ export default function Step05Payment({
   onUpdate,
   suggestedPriceRange,
   onAICoach,
+  workItems,
 }: Step05Props) {
   const [amountInput, setAmountInput] = useState(amount ? amount.toString() : '');
   const [depositInput, setDepositInput] = useState(deposit ? deposit.toString() : '');
   const [hasCoached, setHasCoached] = useState(false);
+
+  useEffect(() => {
+    setAmountInput(amount ? amount.toString() : '');
+  }, [amount]);
+
+  useEffect(() => {
+    setDepositInput(deposit ? deposit.toString() : '');
+  }, [deposit]);
+
+  const itemsTotal = useMemo(() => {
+    if (!workItems || workItems.length === 0) return 0;
+    return workItems.reduce((sum, item) => {
+      const subtotal = item.subtotal ??
+        (item.unitPrice !== undefined && item.quantity !== undefined
+          ? item.unitPrice * item.quantity
+          : undefined);
+      return subtotal ? sum + subtotal : sum;
+    }, 0);
+  }, [workItems]);
 
   const handleAmountChange = (value: string) => {
     setAmountInput(value);
@@ -74,6 +96,12 @@ export default function Step05Payment({
     }
   };
 
+  const handleApplyItemsTotal = () => {
+    if (itemsTotal <= 0) return;
+    setAmountInput(itemsTotal.toString());
+    onUpdate(itemsTotal, deposit);
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -94,6 +122,19 @@ export default function Step05Payment({
             required
           />
         </div>
+
+        {itemsTotal > 0 && (
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-primary-50 border border-primary-200 rounded-lg px-4 py-3">
+            <div>
+              <p className="text-sm text-primary-700 font-medium">작업 항목 합계</p>
+              <p className="text-lg font-semibold text-primary-600">{formatCurrency(itemsTotal)}</p>
+              <p className="text-xs text-primary-500">Step02에서 입력한 항목 금액 기준</p>
+            </div>
+            <Button size="small" onClick={handleApplyItemsTotal}>
+              합계 금액 적용
+            </Button>
+          </div>
+        )}
 
         {suggestedPriceRange && (
           <AIRecommendationBanner

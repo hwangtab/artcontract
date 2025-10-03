@@ -24,6 +24,7 @@ function calculateCompleteness(data: ContractFormData): number {
     'clientName',
     'timeline.deadline',
     'usageScope',
+    'workItems',
   ];
 
   let completed = 0;
@@ -61,6 +62,46 @@ export function detectContractRisks(
   const warnings: Warning[] = [];
   const criticalErrors: string[] = [];
   const suggestions: string[] = [];
+
+  const itemsTotal = (formData.workItems || []).reduce((sum, item) => {
+    const subtotal = item.subtotal ??
+      (item.unitPrice !== undefined && item.quantity !== undefined
+        ? item.unitPrice * item.quantity
+        : undefined);
+    return subtotal ? sum + subtotal : sum;
+  }, 0);
+
+  if (formData.workItems && formData.workItems.length > 0) {
+    const incompleteItems = formData.workItems.filter((item) => !item.description);
+    if (incompleteItems.length > 0) {
+      warnings.push({
+        id: 'work_items_missing_description',
+        severity: 'warning',
+        message: '⚠️ 일부 작업 항목에 상세 설명이 없습니다.',
+        suggestion: '각 작업별로 어떤 결과물을 제공하는지 구체적으로 적어주세요.',
+        autoTrigger: true,
+        dismissible: true,
+        relatedField: 'workItems',
+      });
+    }
+
+    const itemsWithoutPricing = formData.workItems.filter(
+      (item) =>
+        item.subtotal === undefined &&
+        !(item.unitPrice !== undefined && item.quantity !== undefined)
+    );
+    if (itemsWithoutPricing.length > 0) {
+      warnings.push({
+        id: 'work_items_missing_pricing',
+        severity: 'warning',
+        message: '⚠️ 일부 작업 항목에 금액 정보가 없습니다.',
+        suggestion: '단가 또는 소계를 입력해 각 작업의 가치를 명확히 하세요.',
+        autoTrigger: true,
+        dismissible: true,
+        relatedField: 'workItems',
+      });
+    }
+  }
 
   // ========== CRITICAL: 법적 오류 감지 ==========
 
@@ -186,6 +227,21 @@ export function detectContractRisks(
       });
     }
 
+    if (itemsTotal > 0 && amount > 0) {
+      const diffRatio = Math.abs(amount - itemsTotal) / itemsTotal;
+      if (diffRatio >= 0.25) {
+        warnings.push({
+          id: 'work_items_amount_mismatch',
+          severity: 'warning',
+          message: '⚠️ 작업 항목 합계와 총 금액이 크게 차이납니다.',
+          suggestion: '항목별 금액과 총 계약 금액이 일치하는지 다시 확인하세요.',
+          autoTrigger: true,
+          dismissible: true,
+          relatedField: 'payment.amount',
+        });
+      }
+    }
+
     // 7. 고액 계약 (100만원 이상) 법률 상담 권장
     if (amount >= 1000000) {
       warnings.push({
@@ -233,6 +289,18 @@ export function detectContractRisks(
         relatedField: 'enhancedPayment.bankAccount',
       });
     }
+  }
+
+  if (itemsTotal > 0 && amount === 0) {
+    warnings.push({
+      id: 'work_items_without_payment',
+      severity: 'danger',
+      message: '🚨 작업 항목 금액 합계는 있지만 총 계약 금액이 0원입니다.',
+      suggestion: 'Step05에서 총 금액을 입력하거나 항목별 금액을 조정해 계약 금액을 확정하세요.',
+      autoTrigger: true,
+      dismissible: false,
+      relatedField: 'payment.amount',
+    });
   }
 
   // ========== HIGH: 수정 횟수 관련 ==========

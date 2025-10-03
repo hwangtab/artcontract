@@ -108,7 +108,7 @@ function generateArticle1_Purpose(formData: EnhancedContractFormData): string {
 // 제2조: 계약의 대상
 function generateArticle2_Subject(formData: EnhancedContractFormData): string {
   const fieldName = getFieldName(formData.field);
-  const workDescription = formData.workDescription || '[상세 설명 미정]';
+  const workDescription = formatWorkItemsSummary(formData);
   return `## 제2조 (계약의 대상)\n\n본 계약의 대상은 다음과 같다:\n\n1. **작업 분야**: ${fieldName}\n2. **작업 내용**: ${workDescription}\n3. **납품 형태**: ${get납품형태(formData)}\n\n---\n\n`;
 }
 
@@ -376,6 +376,42 @@ function get납품형태(formData: EnhancedContractFormData): string {
   return formats[formData.field || 'other'] || '디지털 파일 또는 인쇄물';
 }
 
+function formatWorkItemsSummary(formData: ContractFormData): string {
+  const { workItems, workDescription } = formData;
+
+  if (!workItems || workItems.length === 0) {
+    return workDescription || '[상세 설명 미정]';
+  }
+
+  const lines: string[] = [];
+  if (workDescription) {
+    lines.push(workDescription, '');
+  }
+
+  workItems.forEach((item, index) => {
+    const subtotal = item.subtotal ??
+      (item.unitPrice !== undefined && item.quantity !== undefined
+        ? item.unitPrice * item.quantity
+        : undefined);
+
+    const itemLines = [`${index + 1}. ${item.title || '작업 항목'}`];
+    if (item.description) itemLines.push(`   - 내용: ${item.description}`);
+    if (item.deliverables) itemLines.push(`   - 납품물: ${item.deliverables}`);
+    if (item.quantity !== undefined) itemLines.push(`   - 수량: ${item.quantity}`);
+    if (item.unitPrice !== undefined) itemLines.push(`   - 단가: ${formatCurrency(item.unitPrice)}`);
+    if (subtotal !== undefined) itemLines.push(`   - 소계: ${formatCurrency(subtotal)}`);
+    if (item.timeline?.startDate || item.timeline?.deadline) {
+      const start = item.timeline.startDate ? formatDate(item.timeline.startDate) : '미정';
+      const end = item.timeline.deadline ? formatDate(item.timeline.deadline) : '미정';
+      itemLines.push(`   - 일정: ${start} ~ ${end}`);
+    }
+
+    lines.push(itemLines.join('\n'));
+  });
+
+  return lines.join('\n');
+}
+
 // ========== 기존 간단한 계약서 생성 (하위 호환성) ==========
 
 function generateBasicContract(formData: ContractFormData, template: ContractTemplate): string {
@@ -409,8 +445,10 @@ function replaceVariables(template: string, data: ContractFormData): string {
   result = result.replace(/{artist_address}/g, data.artistAddress || '[미정]');
 
   // 작업 내용
-  result = result.replace(/{work_type}/g, data.workType || data.workDescription || '[작업 내용 미정]');
-  result = result.replace(/{work_description}/g, data.workDescription || '[상세 설명 미정]');
+  const primaryWorkType = data.workType || data.workItems?.[0]?.title;
+  const workSummary = formatWorkItemsSummary(data);
+  result = result.replace(/{work_type}/g, primaryWorkType || workSummary || '[작업 내용 미정]');
+  result = result.replace(/{work_description}/g, workSummary || '[상세 설명 미정]');
 
   // 기한
   if (data.timeline?.deadline) {

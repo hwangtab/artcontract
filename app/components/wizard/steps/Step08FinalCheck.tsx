@@ -45,6 +45,11 @@ export default function Step08FinalCheck({ formData, onEdit, onGenerate }: Step0
     return scopes.map((s) => labels[s] || s).join(', ');
   };
 
+  const getWorkItemsLabel = () => {
+    if (!formData.workItems || formData.workItems.length === 0) return '단일 작업';
+    return formData.workItems.map((item) => item.title || '작업 항목').join(', ');
+  };
+
   const summaryItems = [
     {
       label: '작업 분야',
@@ -58,6 +63,13 @@ export default function Step08FinalCheck({ formData, onEdit, onGenerate }: Step0
       complete: !!(formData.workType || formData.workDescription),
       step: 2,
       isLongText: !!formData.workDescription && formData.workDescription.length > 50,
+    },
+    {
+      label: '작업 항목',
+      value: formData.workItems && formData.workItems.length > 0 ? getWorkItemsLabel() : '단일 작업',
+      complete: !formData.workItems || formData.workItems.length > 0,
+      step: 2,
+      isLongText: !!formData.workItems && formData.workItems.length > 2,
     },
     {
       label: '클라이언트',

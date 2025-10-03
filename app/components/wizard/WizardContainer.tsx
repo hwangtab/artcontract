@@ -108,14 +108,9 @@ export default function WizardContainer() {
             field={formData.field!}
             workType={formData.workType}
             workDescription={formData.workDescription}
+            workItems={formData.workItems}
             aiAnalysis={formData.aiAnalysis}
-            onSelect={(workType, description, analysis) =>
-              updateFormData({
-                workType,
-                workDescription: description,
-                aiAnalysis: analysis,
-              })
-            }
+            onUpdate={(data) => updateFormData(data)}
           />
         );
       case 3:
@@ -152,6 +147,7 @@ export default function WizardContainer() {
             }
             suggestedPriceRange={formData.aiAnalysis?.suggestedPriceRange}
             onAICoach={(message) => addProactiveMessage(message, 'info')}
+            workItems={formData.workItems}
           />
         );
       case 6:

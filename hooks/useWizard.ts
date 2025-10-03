@@ -51,7 +51,10 @@ export function useWizard() {
           canGoNext = !!newFormData.field;
           break;
         case 2: // Step2: 작업 상세
-          canGoNext = !!newFormData.workDescription;
+          canGoNext = !!(
+            newFormData.workDescription ||
+            (newFormData.workItems && newFormData.workItems.length > 0)
+          );
           break;
         case 3: // Step3: 클라이언트 정보
           canGoNext = !!newFormData.clientName;

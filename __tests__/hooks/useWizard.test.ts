@@ -170,6 +170,29 @@ describe('useWizard', () => {
       expect(result.current.canGoNext).toBe(true);
     });
 
+    test('Step 2: workItems가 있으면 통과', () => {
+      const { result } = renderHook(() => useWizard());
+
+      act(() => {
+        result.current.goToStep(2);
+      });
+
+      act(() => {
+        result.current.updateFormData({
+          workItems: [
+            {
+              id: 'item_1',
+              title: '작곡',
+              description: '기본 테마 작곡',
+              quantity: 1,
+            },
+          ],
+        });
+      });
+
+      expect(result.current.canGoNext).toBe(true);
+    });
+
     test('Step 9: 보호 조항 선택사항, 항상 통과', () => {
       const { result } = renderHook(() => useWizard());
 

@@ -61,6 +61,29 @@ describe('generateContract', () => {
       expect(result.content).toContain('수정 횟수: 3회');
     });
 
+    test('여러 작업 항목이 요약에 포함된다', () => {
+      const formData: ContractFormData = {
+        field: 'music',
+        workItems: [
+          { id: 'compose', title: '작곡', description: '메인 테마 작곡', quantity: 1, unitPrice: 300000 },
+          { id: 'mix', title: '믹싱', description: '트랙 믹싱', quantity: 1, unitPrice: 200000 },
+        ],
+        payment: {
+          amount: 550000,
+          currency: 'KRW',
+        },
+        revisions: 2,
+      };
+
+      const result = generateContract(formData, mockTemplate);
+
+      expect(result.content).toContain('작업: 작곡');
+      expect(result.content).toContain('1. 작곡');
+      expect(result.content).toContain('2. 믹싱');
+      expect(result.content).toContain('메인 테마 작곡');
+      expect(result.content).toContain('트랙 믹싱');
+    });
+
     test('미정 필드는 [미정] 텍스트로 표시', () => {
       const formData: ContractFormData = {
         field: 'design',
@@ -70,7 +93,7 @@ describe('generateContract', () => {
 
       expect(result.content).toContain('[클라이언트 이름 미정]');
       expect(result.content).toContain('[예술가 이름 미정]');
-      expect(result.content).toContain('[작업 내용 미정]');
+      expect(result.content).toContain('[상세 설명 미정]');
       expect(result.content).toContain('[금액 미정]');
     });
 

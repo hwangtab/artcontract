@@ -7,6 +7,20 @@ export type ClientType = 'individual' | 'small_business' | 'enterprise' | 'unkno
 // 사용 범위
 export type UsageScope = 'personal' | 'commercial' | 'online' | 'print' | 'unlimited';
 
+export interface WorkItem {
+  id: string;
+  title: string;
+  description?: string;
+  deliverables?: string;
+  quantity?: number;
+  unitPrice?: number;
+  subtotal?: number;
+  timeline?: {
+    startDate?: Date;
+    deadline?: Date;
+  };
+}
+
 // 위험 수준
 export type RiskLevel = 'low' | 'medium' | 'high';
 
@@ -15,6 +29,7 @@ export type Complexity = 'simple' | 'medium' | 'complex';
 
 // 계약서 폼 데이터
 export interface ContractFormData {
+  workItems?: WorkItem[];
   // Step 0: 작가 정보 (을)
   artistName?: string;
   artistContact?: string;
