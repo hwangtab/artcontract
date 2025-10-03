@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import Input from '../../shared/Input';
 import Button from '../../shared/Button';
-import WarningBanner from '../../shared/WarningBanner';
 import AIRecommendationBanner from '../../shared/AIRecommendationBanner';
 import { formatCurrency } from '@/lib/utils/currency-format';
 
