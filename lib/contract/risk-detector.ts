@@ -27,7 +27,7 @@ function calculateCompleteness(data: ContractFormData): number {
   ];
 
   let completed = 0;
-  const total = requiredFields.length * 1.5 + optionalButImportant.length + 1; // workItems 가중치
+  let total = requiredFields.length * 1.5 + optionalButImportant.length;
 
   requiredFields.forEach((field) => {
     if (getNestedValue(data, field)) {
@@ -41,7 +41,9 @@ function calculateCompleteness(data: ContractFormData): number {
     }
   });
 
+  // workItems 가중치: 항목이 있을 때만 분모/분자에 동시 추가
   if (Array.isArray((data as any).workItems) && (data as any).workItems.length > 0) {
+    total += 1;
     completed += 1;
   }
 
@@ -71,7 +73,7 @@ export function detectContractRisks(
       (item.unitPrice !== undefined && item.quantity !== undefined
         ? item.unitPrice * item.quantity
         : undefined);
-    return subtotal ? sum + subtotal : sum;
+    return subtotal !== undefined ? sum + subtotal : sum;
   }, 0);
 
   if (formData.workItems && formData.workItems.length > 0) {

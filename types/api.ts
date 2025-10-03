@@ -1,4 +1,4 @@
-import { WorkAnalysis } from './contract';
+import { WorkAnalysis, ContractFormData } from './contract';
 import { AIResponse } from './ai-assistant';
 
 // API 공통 응답
@@ -24,15 +24,23 @@ export interface AnalyzeWorkRequest {
 export interface AnalyzeWorkResponse extends ApiResponse<WorkAnalysis> {}
 
 // AI 대화 API
+export interface ChatMessage {
+  id?: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp?: string;
+  metadata?: {
+    type?: 'proactive' | 'response' | 'error';
+    severity?: 'info' | 'warning' | 'danger';
+  };
+}
+
 export interface ChatRequest {
   message: string;
   context: {
     currentStep: number;
-    formData: any;
-    conversationHistory: Array<{
-      role: string;
-      content: string;
-    }>;
+    formData: ContractFormData;
+    conversationHistory: ChatMessage[];
   };
 }
 

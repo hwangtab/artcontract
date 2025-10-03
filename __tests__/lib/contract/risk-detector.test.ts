@@ -19,6 +19,24 @@ describe('detectContractRisks', () => {
       );
     });
 
+    test('0원 항목도 합계에 포함되어 금액 불일치 경고 없음', () => {
+      const formData: ContractFormData = {
+        field: 'music',
+        workItems: [
+          { id: 'free', title: '무료 제공', subtotal: 0 },
+          { id: 'paid', title: '작곡', unitPrice: 500000, quantity: 1 },
+        ],
+        payment: { amount: 500000, currency: 'KRW' },
+        revisions: 3,
+      };
+
+      const result = detectContractRisks(formData);
+
+      expect(result.warnings).not.toContainEqual(
+        expect.objectContaining({ id: 'work_items_amount_mismatch' })
+      );
+    });
+
     test('금액이 5만원 미만인 경우 극저가 경고', () => {
       const formData: ContractFormData = {
         field: 'design',
