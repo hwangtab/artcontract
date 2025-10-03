@@ -53,7 +53,7 @@ export class OpenRouterClient {
           'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://artcontract.vercel.app',
-          'X-Title': 'ArtContract',
+          'X-Title': '한국스마트협동조합 예술인 계약서 작성 도우미',
         },
         body: JSON.stringify({
           model: MODEL,

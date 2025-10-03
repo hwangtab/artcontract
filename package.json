@@ -1,7 +1,7 @@
 {
   "name": "artcontract",
   "version": "1.0.0",
-  "description": "예술가를 위한 계약서 자동 생성 웹앱",
+  "description": "한국스마트협동조합 예술인 계약서 작성 도우미",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,12 +13,14 @@
     "test:coverage": "jest --coverage"
   },
   "keywords": [
+    "한국스마트협동조합",
+    "예술인",
     "artist",
     "contract",
     "ai",
     "freelance"
   ],
-  "author": "ArtContract Team",
+  "author": "한국스마트협동조합",
   "license": "MIT",
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",

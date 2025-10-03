@@ -2,10 +2,12 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'ArtContract - 예술가를 위한 계약서 자동 생성',
+  title: '한국스마트협동조합 예술인 계약서 작성 도우미',
   description:
     '5분만에 안전한 계약서를 만드세요. AI가 위험을 미리 경고하고 보호합니다. 모든 예술가를 위한 무료 서비스.',
   keywords: [
+    '한국스마트협동조합',
+    '예술인',
     '예술가',
     '계약서',
     'AI',
@@ -15,10 +17,10 @@ export const metadata: Metadata = {
     '작가',
     '음악가',
   ],
-  authors: [{ name: 'ArtContract Team' }],
+  authors: [{ name: '한국스마트협동조합' }],
   openGraph: {
-    title: 'ArtContract - 예술가를 위한 계약서 자동 생성',
-    description: '5분만에 안전한 계약서를 만드세요',
+    title: '한국스마트협동조합 예술인 계약서 작성 도우미',
+    description: '5분만에 안전한 계약서를 만드세요. AI가 위험을 미리 경고하고 보호합니다.',
     type: 'website',
     locale: 'ko_KR',
   },

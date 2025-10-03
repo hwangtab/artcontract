@@ -6,12 +6,15 @@ export default function Home() {
       {/* Hero Section */}
       <div className="bg-primary-500 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-4">ArtContract</h1>
-          <p className="text-xl text-primary-100 mb-2">
-            예술가를 위한 계약서 자동 생성
+          <h1 className="text-4xl font-bold mb-2">한국스마트협동조합</h1>
+          <h2 className="text-3xl font-semibold mb-4 text-primary-100">
+            예술인 계약서 작성 도우미
+          </h2>
+          <p className="text-xl text-primary-200 mb-2">
+            5분만에 안전한 계약서를 만드세요
           </p>
           <p className="text-primary-200">
-            5분만에 안전한 계약서를 만드세요 • AI가 위험을 미리 경고합니다 • 완전 무료
+            AI가 위험을 미리 경고합니다 • 완전 무료
           </p>
         </div>
       </div>
@@ -27,7 +30,7 @@ export default function Home() {
             고액 계약 시 반드시 전문가와 상담하세요.
           </p>
           <p className="text-gray-500 text-sm mt-4">
-            © 2025 ArtContract. 모든 예술가의 권리를 보호합니다.
+            © 2025 한국스마트협동조합. 모든 예술가의 권리를 보호합니다.
           </p>
         </div>
       </footer>
