@@ -5,6 +5,7 @@ import Button from '../../shared/Button';
 import Input from '../../shared/Input';
 import LoadingSpinner from '../../shared/LoadingSpinner';
 import ErrorBanner from '../../shared/ErrorBanner';
+import ConfirmModal from '../../shared/ConfirmModal';
 import { ArtField, WorkAnalysis, WorkItem } from '@/types/contract';
 import { Sparkles, Check, AlertTriangle, Plus, Trash2 } from 'lucide-react';
 
@@ -93,6 +94,11 @@ export default function Step02WorkDetail({
   const [showQuickOptions, setShowQuickOptions] = useState(false);
   const [showErrorBanner, setShowErrorBanner] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // ConfirmModal 상태
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [pendingDuplicateItem, setPendingDuplicateItem] = useState<WorkItemDraft | null>(null);
+  const [duplicateItemTitle, setDuplicateItemTitle] = useState('');
 
   useEffect(() => {
     setDescriptionInput(workDescription || '');
@@ -186,15 +192,17 @@ export default function Step02WorkDetail({
     );
 
     if (duplicateItem) {
-      // 중복 항목 발견 시 사용자에게 확인
-      const shouldProceed = window.confirm(
-        `"${duplicateItem.title}" 항목이 이미 존재합니다.\n\n같은 내용으로 새 항목을 추가하시겠어요?`
-      );
-      if (!shouldProceed) {
-        return;
-      }
+      // 중복 항목 발견 시 모달 표시
+      setDuplicateItemTitle(duplicateItem.title);
+      setShowDuplicateModal(true);
+      return;
     }
 
+    // 중복이 아니면 바로 분석 진행
+    await performAIAnalysis();
+  };
+
+  const performAIAnalysis = async () => {
     setIsAnalyzing(true);
 
     try {
@@ -237,6 +245,16 @@ export default function Step02WorkDetail({
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const handleConfirmDuplicate = () => {
+    setShowDuplicateModal(false);
+    performAIAnalysis();
+  };
+
+  const handleCancelDuplicate = () => {
+    setShowDuplicateModal(false);
+    setDuplicateItemTitle('');
   };
 
   const fieldLabels: Record<ArtField, string> = {
@@ -515,6 +533,24 @@ export default function Step02WorkDetail({
           </div>
         )}
       </div>
+
+      {/* 중복 항목 확인 모달 */}
+      <ConfirmModal
+        isOpen={showDuplicateModal}
+        title="중복 항목 감지"
+        message={
+          <>
+            <strong>"{duplicateItemTitle}"</strong> 항목이 이미 존재합니다.
+            <br />
+            <br />
+            같은 내용으로 새 항목을 추가하시겠어요?
+          </>
+        }
+        confirmLabel="추가하기"
+        cancelLabel="취소"
+        onConfirm={handleConfirmDuplicate}
+        onCancel={handleCancelDuplicate}
+      />
     </div>
   );
 }
