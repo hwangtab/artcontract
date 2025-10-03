@@ -1,11 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import Card from '../../shared/Card';
-import Input from '../../shared/Input';
+import React, { useState, useCallback } from 'react';
 import Button from '../../shared/Button';
 import LoadingSpinner from '../../shared/LoadingSpinner';
-import Toast from '../../shared/Toast';
 import ErrorBanner from '../../shared/ErrorBanner';
 import { ArtField, WorkAnalysis } from '@/types/contract';
 import { Sparkles, Check, AlertTriangle } from 'lucide-react';
@@ -43,6 +40,17 @@ export default function Step02WorkDetail({
     other: ['작업 내용을 자유롭게 입력하세요'],
   };
 
+  const notifySelection = useCallback(
+    (
+      selectedWorkType: string,
+      description: string,
+      analysis?: WorkAnalysis
+    ) => {
+      onSelect(selectedWorkType, description, analysis);
+    },
+    [onSelect]
+  );
+
   const handleAIAnalysis = async () => {
     if (!userInput.trim()) return;
 
@@ -64,7 +72,7 @@ export default function Step02WorkDetail({
         const result: WorkAnalysis = data.data;
         setAnalysisResult(result);
         setShowErrorBanner(false);
-        onSelect(result.workType || userInput.trim(), userInput.trim(), result);
+        notifySelection(result.workType || userInput.trim(), userInput.trim(), result);
       } else {
         // AI 실패 시 ErrorBanner 표시
         setErrorMessage('AI 분석에 실패했어요. 네트워크 상태를 확인하고 다시 시도해주세요.');
@@ -80,9 +88,28 @@ export default function Step02WorkDetail({
     }
   };
 
+  const handleInputChange = (value: string) => {
+    setUserInput(value);
+    const trimmed = value.trim();
+
+    if (analysisResult) {
+      setAnalysisResult(null);
+    }
+
+    if (trimmed) {
+      notifySelection(trimmed, trimmed, undefined);
+    } else {
+      notifySelection('', '', undefined);
+    }
+  };
+
   const handleQuickSelect = (example: string) => {
     setUserInput(example);
     setShowQuickOptions(false);
+    if (analysisResult) {
+      setAnalysisResult(null);
+    }
+    notifySelection(example, example, undefined);
   };
 
   const fieldLabels: Record<ArtField, string> = {
@@ -118,7 +145,7 @@ export default function Step02WorkDetail({
 
           <textarea
             value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             placeholder="예: 카페 로고를 만들어주세요. 인스타그램에 올릴 거고, 따뜻하고 아늑한 느낌으로 부탁드려요."
             className="w-full h-32 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none resize-none"
             disabled={isAnalyzing}

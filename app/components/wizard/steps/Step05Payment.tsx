@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Input from '../../shared/Input';
 import Button from '../../shared/Button';
 import WarningBanner from '../../shared/WarningBanner';
@@ -41,6 +41,8 @@ export default function Step05Payment({
     const numValue = parseInt(value.replace(/[^\d]/g, ''), 10);
     if (!isNaN(numValue)) {
       onUpdate(amount, numValue);
+    } else {
+      onUpdate(amount, undefined);
     }
   };
 
