@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Input from '../../shared/Input';
 import Button from '../../shared/Button';
 import WarningBanner from '../../shared/WarningBanner';
+import AIRecommendationBanner from '../../shared/AIRecommendationBanner';
 import { formatCurrency } from '@/lib/utils/currency-format';
 
 interface Step05Props {
@@ -94,28 +95,19 @@ export default function Step05Payment({
         </div>
 
         {suggestedPriceRange && (
-          <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
-            <p className="font-medium text-primary-900 mb-3">💡 AI 추천 금액</p>
-            <p className="text-sm text-primary-800 mb-3">
-              비슷한 작업은 보통 {formatCurrency(suggestedPriceRange.min)} ~ {formatCurrency(suggestedPriceRange.max)}이에요
-            </p>
-            <div className="flex gap-2 flex-wrap">
-              <Button
-                size="small"
-                variant="secondary"
-                onClick={() => setSuggestedAmount(suggestedPriceRange.min)}
-              >
-                {formatCurrency(suggestedPriceRange.min)}로 채우기
-              </Button>
-              <Button
-                size="small"
-                variant="secondary"
-                onClick={() => setSuggestedAmount(Math.floor((suggestedPriceRange.min + suggestedPriceRange.max) / 2))}
-              >
-                {formatCurrency(Math.floor((suggestedPriceRange.min + suggestedPriceRange.max) / 2))}로 채우기
-              </Button>
-            </div>
-          </div>
+          <AIRecommendationBanner
+            title="💡 AI 추천 금액"
+            description={
+              <>
+                비슷한 작업은 보통 <strong className="text-primary-600">{formatCurrency(suggestedPriceRange.min)} ~ {formatCurrency(suggestedPriceRange.max)}</strong>이에요.
+                <br />
+                <strong className="text-primary-600 text-lg">{formatCurrency(Math.floor((suggestedPriceRange.min + suggestedPriceRange.max) / 2))}</strong> (중간값)를 추천드려요.
+              </>
+            }
+            actionLabel={`${formatCurrency(Math.floor((suggestedPriceRange.min + suggestedPriceRange.max) / 2))}로 자동 채우기`}
+            onApply={() => setSuggestedAmount(Math.floor((suggestedPriceRange.min + suggestedPriceRange.max) / 2))}
+            isApplied={amount === Math.floor((suggestedPriceRange.min + suggestedPriceRange.max) / 2)}
+          />
         )}
 
         {amount && amount >= 100000 && (

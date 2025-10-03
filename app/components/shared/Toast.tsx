@@ -59,6 +59,7 @@ export default function Toast({
           setTimeout(() => onClose?.(), 300);
         }}
         className="hover:bg-white/20 rounded p-1"
+        aria-label="알림 닫기"
       >
         <X size={16} />
       </button>

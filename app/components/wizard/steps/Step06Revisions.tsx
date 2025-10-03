@@ -5,6 +5,7 @@ import Card from '../../shared/Card';
 import Input from '../../shared/Input';
 import Button from '../../shared/Button';
 import WarningBanner from '../../shared/WarningBanner';
+import AIRecommendationBanner from '../../shared/AIRecommendationBanner';
 import { AlertTriangle, Sparkles } from 'lucide-react';
 import { WorkAnalysis } from '@/types/contract';
 
@@ -58,9 +59,9 @@ export default function Step06Revisions({
   const [hasCoached, setHasCoached] = useState(false);
 
   const presetOptions = [
-    { value: 2, label: '✌️ 2회', description: '간단한 작업에 적합', recommended: false },
-    { value: 3, label: '🖐️ 3회', description: '추천! 대부분 충분해요', recommended: true },
-    { value: 5, label: '🤚 5회', description: '안전한 범위', recommended: false },
+    { value: 2, label: '✌️ 2회', description: '간단한 작업에 적합' },
+    { value: 3, label: '🖐️ 3회', description: '대부분 충분해요' },
+    { value: 5, label: '🤚 5회', description: '안전한 범위' },
   ];
 
   const handlePresetSelect = (value: number) => {
@@ -137,27 +138,18 @@ export default function Step06Revisions({
       <div className="mt-8 space-y-6">
         {/* AI 추천 배너 */}
         {recommendedRevisions && aiAnalysis && (
-          <div className="p-5 bg-gradient-to-r from-primary-50 to-blue-50 rounded-xl border-2 border-primary-300">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 mt-1">
-                <Sparkles className="text-primary-500" size={24} />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 mb-2">💡 AI 추천 수정 횟수</h3>
-                <p className="text-sm text-gray-700 mb-3">
-                  작업 복잡도가 <strong className="text-primary-600">{complexityLabel[aiAnalysis.complexity]}</strong>이므로,
-                  <strong className="text-primary-600 text-lg"> {recommendedRevisions}회</strong> 수정을 추천드려요.
-                </p>
-                <Button
-                  size="small"
-                  onClick={() => handlePresetSelect(recommendedRevisions)}
-                  disabled={revisions === recommendedRevisions}
-                >
-                  {revisions === recommendedRevisions ? '✓ 적용됨' : `${recommendedRevisions}회로 자동 채우기`}
-                </Button>
-              </div>
-            </div>
-          </div>
+          <AIRecommendationBanner
+            title="💡 AI 추천 수정 횟수"
+            description={
+              <>
+                작업 복잡도가 <strong className="text-primary-600">{complexityLabel[aiAnalysis.complexity]}</strong>이므로,
+                <strong className="text-primary-600 text-lg"> {recommendedRevisions}회</strong> 수정을 추천드려요.
+              </>
+            }
+            actionLabel={`${recommendedRevisions}회로 자동 채우기`}
+            onApply={() => handlePresetSelect(recommendedRevisions)}
+            isApplied={revisions === recommendedRevisions}
+          />
         )}
 
         {/* Preset Options */}
@@ -171,7 +163,6 @@ export default function Step06Revisions({
               <div className="text-center">
                 <h3 className="text-2xl font-semibold mb-2">
                   {option.label}
-                  {option.recommended && <span className="ml-2 text-yellow-500">⭐</span>}
                 </h3>
                 <p className="text-sm text-gray-600">{option.description}</p>
               </div>
