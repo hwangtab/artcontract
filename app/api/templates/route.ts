@@ -285,7 +285,11 @@ export async function GET(request: NextRequest) {
       success: true,
       data: { template },
       timestamp: new Date().toISOString(),
-    } as GetTemplateResponse);
+    } as GetTemplateResponse, {
+      headers: {
+        'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+      },
+    });
   } catch (error) {
     console.error('Template API error:', error);
 
