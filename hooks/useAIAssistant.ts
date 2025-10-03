@@ -77,6 +77,21 @@ export function useAIAssistant() {
           }),
         });
 
+        // HTTP 오류 체크 (Rate Limit, Server Error 등)
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+
+          let errorContent = '죄송해요, 잠시 문제가 있어요. 다시 시도해주세요 😊';
+
+          if (response.status === 429) {
+            errorContent = '요청이 너무 많아요 😅 잠시 후 (1분 뒤) 다시 시도해주세요!';
+          } else if (response.status >= 500) {
+            errorContent = '서버에 일시적인 문제가 있어요. 잠시 후 다시 시도해주세요 🙏';
+          }
+
+          throw new Error(errorContent);
+        }
+
         const data = await response.json();
 
         if (data.success) {
@@ -108,10 +123,16 @@ export function useAIAssistant() {
       } catch (error) {
         console.error('AI chat error:', error);
 
+        // Error 객체에서 메시지 추출 (HTTP 오류 or 일반 오류)
+        const errorContent =
+          error instanceof Error
+            ? error.message
+            : '죄송해요, 잠시 문제가 있어요. 다시 한번 물어봐 주세요! 😊';
+
         const errorMessage: AIMessage = {
           id: `msg_${Date.now()}_error_${Math.random().toString(36).substr(2, 9)}`,
           role: 'assistant',
-          content: '죄송해요, 잠시 문제가 있어요. 다시 한번 물어봐 주세요! 😊',
+          content: errorContent,
           timestamp: new Date(),
           type: 'text',
         };
