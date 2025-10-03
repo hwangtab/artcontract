@@ -87,22 +87,23 @@ export class OpenRouterClient {
 입력: "${userInput}"
 분야: "${field}"
 
-다음 JSON 형식으로 정확히 분석하세요 (JSON만 출력):
+다음 JSON 형식으로 정확히 분석하세요 (JSON만 출력, 주석 없이):
 
 {
   "workType": "구체적 작업 분류",
-  "clientType": "individual|small_business|enterprise|unknown",
-  "commercialUse": true|false,
-  "usageScope": "personal|commercial|online|print|unlimited",
-  "complexity": "simple|medium|complex",
-  "riskFactors": ["위험 요소들"],
+  "clientType": "individual 또는 small_business 또는 enterprise 또는 unknown 중 하나",
+  "commercialUse": true 또는 false,
+  "usageScope": ["personal", "commercial", "online", "print"] 중 해당하는 것들 배열로,
+  "complexity": "simple 또는 medium 또는 complex 중 하나",
+  "riskFactors": ["위험 요소 1", "위험 요소 2"],
   "suggestedPriceRange": {
-    "min": 숫자,
-    "max": 숫자,
+    "min": 100000,
+    "max": 500000,
     "currency": "KRW"
   },
-  "additionalClauses": ["추가 조항들"],
-  "confidence": 0.0~1.0
+  "estimatedDays": 7,
+  "additionalClauses": ["추가 조항 1", "추가 조항 2"],
+  "confidence": 0.8
 }
 
 분석 기준:
