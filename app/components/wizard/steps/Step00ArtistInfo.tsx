@@ -42,7 +42,7 @@ export default function Step00ArtistInfo({
           </h3>
 
           <Input
-            label="작가 이름 *"
+            label="작가 이름"
             value={artistName || ''}
             onChange={(value) =>
               onUpdate({ artistName: value, artistContact, artistIdNumber, artistAddress })
@@ -53,7 +53,7 @@ export default function Step00ArtistInfo({
           />
 
           <Input
-            label="연락처 *"
+            label="연락처"
             value={artistContact || ''}
             onChange={(value) =>
               onUpdate({ artistName, artistContact: value, artistIdNumber, artistAddress })

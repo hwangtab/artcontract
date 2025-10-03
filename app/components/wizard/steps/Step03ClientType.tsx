@@ -125,11 +125,12 @@ export default function Step03ClientType({
             </h3>
 
             <Input
-              label="클라이언트 이름/상호 *"
+              label="클라이언트 이름/상호"
               value={clientName || ''}
               onChange={(value) => onUpdate({ clientType, clientName: value, clientContact })}
               placeholder="예: 홍길동, 카페모카"
               helper="계약서에 표시될 이름입니다 (필수)"
+              required
             />
 
             <Input
