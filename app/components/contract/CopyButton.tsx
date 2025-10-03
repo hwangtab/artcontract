@@ -24,6 +24,7 @@ export default function CopyButton({ text, label = '복사' }: CopyButtonProps) 
   return (
     <button
       onClick={handleCopy}
+      aria-label={copied ? '복사 완료' : '계약서 복사하기'}
       className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
         copied
           ? 'bg-success text-white'
