@@ -9,8 +9,10 @@ import { ArtField } from '@/types/contract';
 interface Step01Props {
   selectedField?: ArtField;
   subField?: string;
+  selectedSubFields?: string[];
   onSelect: (field: ArtField) => void;
   onSubFieldChange?: (subField: string) => void;
+  onSubFieldsChange?: (subFields: string[]) => void;
 }
 
 const fields = [
@@ -72,13 +74,39 @@ const fields = [
   },
 ];
 
-export default function Step01FieldSelection({ selectedField, subField, onSelect, onSubFieldChange }: Step01Props) {
+export default function Step01FieldSelection({ selectedField, subField, selectedSubFields = [], onSelect, onSubFieldChange, onSubFieldsChange }: Step01Props) {
   const [customSubField, setCustomSubField] = useState('');
   const selectedFieldData = fields.find(f => f.id === selectedField);
 
+  // 복수 선택 토글
+  const handleSubFieldToggle = (value: string) => {
+    const current = selectedSubFields || [];
+
+    if (value === '기타') {
+      // "기타"는 단독 선택 (다른 항목과 함께 선택 불가)
+      if (current.includes('기타')) {
+        onSubFieldsChange?.([]);
+      } else {
+        onSubFieldsChange?.(['기타']);
+        setCustomSubField('');
+      }
+      return;
+    }
+
+    // 일반 항목 토글
+    if (current.includes(value)) {
+      // 이미 선택됨 → 제거
+      onSubFieldsChange?.(current.filter(v => v !== value));
+    } else {
+      // 선택 안 됨 → 추가 (단, "기타"가 있으면 제거)
+      const filtered = current.filter(v => v !== '기타');
+      onSubFieldsChange?.([...filtered, value]);
+    }
+  };
+
+  // 레거시 단일 선택 핸들러 (하위 호환)
   const handleSubFieldSelect = (value: string) => {
     if (value === '기타') {
-      // "기타" 선택 시 직접 입력 모드
       setCustomSubField('');
       onSubFieldChange?.('');
     } else {
@@ -89,6 +117,14 @@ export default function Step01FieldSelection({ selectedField, subField, onSelect
 
   const handleCustomSubFieldChange = (value: string) => {
     setCustomSubField(value);
+
+    // 복수 선택 모드라면 '기타' 항목의 값 업데이트
+    if (onSubFieldsChange && (selectedSubFields?.includes('기타') || !selectedSubFields?.length)) {
+      if (value.trim()) {
+        onSubFieldsChange?.(['기타']);
+      }
+    }
+
     onSubFieldChange?.(value);
   };
 
@@ -122,39 +158,62 @@ export default function Step01FieldSelection({ selectedField, subField, onSelect
         })}
       </div>
 
-      {/* 세부 장르 선택 */}
+      {/* 세부 작업 복수 선택 (체크박스 모드) */}
       {selectedField && selectedFieldData && selectedFieldData.subFields.length > 0 && (
         <div className="mt-6 p-6 bg-white rounded-xl border-2 border-primary-200 shadow-sm">
-          <h3 className="font-semibold text-gray-900 mb-2">주요 작업 분야를 선택하세요</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">✨ 어떤 작업들을 하시나요? (여러 개 선택 가능)</h3>
           <p className="text-sm text-gray-600 mb-4">
-            여러 작업을 진행하신다면 가장 중요한 작업을 선택하세요. 나머지는 다음 단계에서 추가할 수 있어요! 😊
+            진행하실 모든 작업을 선택하세요. 다음 단계에서 각 작업별 상세 정보를 입력할 수 있어요!
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            {selectedFieldData.subFields.map((sub) => (
-              <button
-                key={sub}
-                onClick={() => handleSubFieldSelect(sub)}
-                className={`px-4 py-2 rounded-lg border-2 transition-all text-sm ${
-                  subField === sub || (sub === '기타' && customSubField)
-                    ? 'border-primary-500 bg-primary-50 text-primary-700 font-medium'
-                    : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300'
-                }`}
-              >
-                {sub}
-              </button>
-            ))}
+            {selectedFieldData.subFields.map((sub) => {
+              const isSelected = selectedSubFields?.includes(sub) || false;
+              return (
+                <button
+                  key={sub}
+                  onClick={() => handleSubFieldToggle(sub)}
+                  className={`px-4 py-3 rounded-lg border-2 transition-all text-sm flex items-center gap-2 ${
+                    isSelected
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 font-medium'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300'
+                  }`}
+                >
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                    isSelected
+                      ? 'bg-primary-500 border-primary-500'
+                      : 'border-gray-300 bg-white'
+                  }`}>
+                    {isSelected && (
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <span>{sub}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* "기타" 선택 시 직접 입력 */}
-          {(subField === '기타' || customSubField) && (
+          {selectedSubFields?.includes('기타') && (
             <div className="mt-4">
               <Input
-                label="세부 장르를 직접 입력하세요"
+                label="세부 작업을 직접 입력하세요"
                 value={customSubField || subField || ''}
                 onChange={handleCustomSubFieldChange}
                 placeholder="예: 3D 모델링, 자수 디자인 등"
                 helper="정확하게 입력하면 계약서가 더 명확해져요"
               />
+            </div>
+          )}
+
+          {/* 선택된 항목 개수 표시 */}
+          {selectedSubFields && selectedSubFields.length > 0 && (
+            <div className="mt-4 p-3 bg-primary-50 rounded-lg border border-primary-200">
+              <p className="text-sm text-primary-700">
+                ✓ <strong>{selectedSubFields.length}개</strong>의 작업이 선택되었어요!
+              </p>
             </div>
           )}
         </div>
@@ -177,7 +236,7 @@ export default function Step01FieldSelection({ selectedField, subField, onSelect
 
       <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <p className="text-sm text-blue-800">
-          💡 <strong>팁:</strong> 주 작업을 선택하면 AI가 관련 작업들을 추천해드려요! 다음 단계에서 여러 작업을 추가할 수 있어요.
+          💡 <strong>팁:</strong> 선택한 작업들이 다음 단계에 자동으로 추가되며, 각각의 금액과 수량을 입력할 수 있어요!
         </p>
       </div>
     </div>

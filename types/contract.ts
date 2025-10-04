@@ -40,7 +40,8 @@ export interface ContractFormData {
 
   // Step 1: 작업 분야
   field?: ArtField;
-  subField?: string;  // 세부 장르
+  subField?: string;  // 세부 장르 (단일 선택 - 레거시)
+  selectedSubFields?: string[];  // 복수 선택 세부 장르 (새 방식)
 
   // Step 2: 작업 상세
   workType?: string;

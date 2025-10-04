@@ -15,6 +15,7 @@ interface Step02Props {
   workDescription?: string;
   workItems?: WorkItem[];
   aiAnalysis?: WorkAnalysis | null;
+  selectedSubFields?: string[];  // Step 1에서 선택한 작업들
   onUpdate: (data: Partial<EnhancedContractFormData>) => void;
 }
 
@@ -78,6 +79,7 @@ export default function Step02WorkDetail({
   workDescription,
   workItems,
   aiAnalysis,
+  selectedSubFields,
   onUpdate,
 }: Step02Props) {
   const [descriptionInput, setDescriptionInput] = useState(workDescription || '');
@@ -90,18 +92,48 @@ export default function Step02WorkDetail({
   const [showQuickOptions, setShowQuickOptions] = useState(false);
   const [showErrorBanner, setShowErrorBanner] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
   // ConfirmModal 상태
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [pendingDuplicateItem, setPendingDuplicateItem] = useState<WorkItemDraft | null>(null);
   const [duplicateItemTitle, setDuplicateItemTitle] = useState('');
 
+  // ✅ Step 1에서 선택한 작업들을 자동 로드
+  useEffect(() => {
+    if (!initialLoadDone && selectedSubFields && selectedSubFields.length > 0) {
+      const autoLoadedItems = selectedSubFields.map((subFieldTitle) =>
+        createEmptyItem(subFieldTitle)
+      );
+      setItems(autoLoadedItems);
+      setInitialLoadDone(true);
+
+      // 즉시 동기화
+      const normalizedItems = autoLoadedItems.map((item) => ({
+        ...item,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        subtotal: undefined,
+      }));
+
+      const primaryTitle = normalizedItems[0]?.title;
+
+      onUpdate({
+        workItems: normalizedItems,
+        workType: primaryTitle || undefined,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSubFields, initialLoadDone]);
+
   useEffect(() => {
     setDescriptionInput(workDescription || '');
   }, [workDescription]);
 
   useEffect(() => {
-    setItems((workItems || []).map((item) => ({ ...item })));
+    if (workItems && workItems.length > 0) {
+      setItems((workItems || []).map((item) => ({ ...item })));
+    }
   }, [workItems]);
 
   const totalCost = useMemo(() => {

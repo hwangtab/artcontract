@@ -48,7 +48,10 @@ export function useWizard() {
           canGoNext = !!(newFormData.artistName && newFormData.artistContact);
           break;
         case 1: // Step1: 작업 분야
-          canGoNext = !!newFormData.field;
+          // 새 방식: selectedSubFields가 있으면 그것 확인, 없으면 레거시 field 확인
+          canGoNext = newFormData.selectedSubFields && newFormData.selectedSubFields.length > 0
+            ? true
+            : !!newFormData.field;
           break;
         case 2: // Step2: 작업 상세
           canGoNext = !!(

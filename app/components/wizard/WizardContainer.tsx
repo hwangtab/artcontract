@@ -130,8 +130,10 @@ export default function WizardContainer() {
           <Step01FieldSelection
             selectedField={formData.field}
             subField={formData.subField}
+            selectedSubFields={formData.selectedSubFields}
             onSelect={(field) => updateFormData({ field })}
             onSubFieldChange={(subField) => updateFormData({ subField })}
+            onSubFieldsChange={(selectedSubFields) => updateFormData({ selectedSubFields })}
           />
         );
       case 2:
@@ -142,6 +144,7 @@ export default function WizardContainer() {
             workDescription={formData.workDescription}
             workItems={formData.workItems}
             aiAnalysis={formData.aiAnalysis}
+            selectedSubFields={formData.selectedSubFields}
             onUpdate={(data) => updateFormData(data)}
           />
         );
