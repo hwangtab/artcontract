@@ -570,7 +570,7 @@ export default function Step02WorkDetail({
               {isAnalysisOutdated && (
                 <Button
                   variant="primary"
-                  size="sm"
+                  size="small"
                   onClick={performAIAnalysis}
                   disabled={isAnalyzing}
                 >
