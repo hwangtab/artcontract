@@ -36,7 +36,7 @@ export default function WizardContainer() {
     prevStep,
     goToStep,
     updateFormData,
-    resetContract,
+    reset,
   } = useWizard();
 
   const {
@@ -106,7 +106,7 @@ export default function WizardContainer() {
 
   const handleConfirmReset = () => {
     setShowResetModal(false);
-    resetContract();
+    reset();
   };
 
   const handleCancelReset = () => {

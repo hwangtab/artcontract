@@ -123,19 +123,6 @@ export function useWizard() {
     });
   }, []);
 
-  // 계약서 리셋 (모달 확인 후 호출)
-  const resetContract = useCallback(() => {
-    setState({
-      currentStep: 0,
-      formData: initialFormData,
-      isComplete: false,
-      canGoNext: false,
-      canGoPrev: false,
-      completeness: 0,
-      visitedSteps: [0],
-    });
-  }, []);
-
   // 이전 단계
   const prevStep = useCallback((onRequestReset?: () => void) => {
     setState((prev) => {
@@ -189,16 +176,16 @@ export function useWizard() {
     });
   }, []);
 
-  // 리셋
+  // 리셋 (모달 확인 후 호출)
   const reset = useCallback(() => {
     setState({
-      currentStep: 1,
+      currentStep: 0,
       formData: initialFormData,
       isComplete: false,
-      canGoNext: true,
+      canGoNext: false,
       canGoPrev: false,
       completeness: 0,
-      visitedSteps: [1],
+      visitedSteps: [0],
     });
   }, []);
 
@@ -215,7 +202,6 @@ export function useWizard() {
     prevStep,
     goToStep,
     updateFormData,
-    reset,
-    resetContract, // 모달 확인 후 호출할 함수
+    reset, // 모달 확인 후 호출할 함수
   };
 }

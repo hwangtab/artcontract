@@ -6,7 +6,8 @@ export function formatCurrency(amount: number, currency: string = 'KRW'): string
 }
 
 export function parseCurrency(input: string): number | null {
-  const cleaned = input.replace(/[^\d]/g, '');
-  const number = parseInt(cleaned, 10);
+  // ✅ 소수점(.)도 허용하도록 수정
+  const cleaned = input.replace(/[^\d.]/g, '');
+  const number = parseFloat(cleaned);
   return isNaN(number) ? null : number;
 }

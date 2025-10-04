@@ -113,6 +113,13 @@ export default function Step08FinalCheck({ formData, onEdit, onGenerate }: Step0
   const totalItems = summaryItems.length;
   const isFullyComplete = completedItems === totalItems && formData.riskLevel === 'low';
 
+  // ✅ 필수 필드 확인 (개수가 아닌 특정 필드)
+  const requiredFieldsMet =
+    !!formData.field &&
+    !!(formData.workType || formData.workDescription) &&
+    !!formData.clientType &&
+    !!formData.payment?.amount;
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -257,11 +264,11 @@ export default function Step08FinalCheck({ formData, onEdit, onGenerate }: Step0
           fullWidth
           size="large"
           onClick={onGenerate}
-          disabled={completedItems < 4}
+          disabled={!requiredFieldsMet}
         >
-          {completedItems >= 4 ? '🎉 계약서 만들기' : '최소 4개 항목을 입력하세요'}
+          {requiredFieldsMet ? '🎉 계약서 만들기' : '필수 항목을 모두 입력하세요'}
         </Button>
-        {completedItems < 4 && (
+        {!requiredFieldsMet && (
           <p className="text-sm text-gray-600 text-center mt-2">
             분야, 작업내용, 클라이언트, 금액은 필수 항목이에요
           </p>

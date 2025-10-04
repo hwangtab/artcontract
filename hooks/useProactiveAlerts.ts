@@ -8,21 +8,16 @@ type ProactiveSeverity = 'info' | 'warning' | 'danger';
 interface UseProactiveAlertsParams {
   currentStep: number;
   formData: EnhancedContractFormData;
-  addProactiveMessage: (content: string, severity: ProactiveSeverity) => void;
+  addProactiveMessage: (content: string, severity: ProactiveSeverity, id?: string) => void;
 }
 
 export function useProactiveAlerts({ currentStep, formData, addProactiveMessage }: UseProactiveAlertsParams) {
   const shownStepTipsRef = useRef<Set<number>>(new Set());
-  const shownWarningsRef = useRef<Set<string>>(new Set());
 
   const registerWarning = useCallback(
     (id: string, message: string, severity: ProactiveSeverity) => {
-      if (shownWarningsRef.current.has(id)) {
-        return;
-      }
-
-      addProactiveMessage(message, severity);
-      shownWarningsRef.current.add(id);
+      // ✅ 중복 제거는 addProactiveMessage에서 ID 기반으로 처리
+      addProactiveMessage(message, severity, id);
     },
     [addProactiveMessage]
   );
