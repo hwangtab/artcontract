@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Card from '../../shared/Card';
 import Button from '../../shared/Button';
-import { Shield, AlertTriangle, Info } from 'lucide-react';
+import Toast from '../../shared/Toast';
+import { Shield, AlertTriangle, Info, Check } from 'lucide-react';
 import { CopyrightTerms } from '@/types/contract';
 
 interface Step06bCopyrightProps {
@@ -44,6 +45,10 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
   );
 
   const [usageRegion, setUsageRegion] = useState(copyrightTerms?.usageRegion || '대한민국');
+
+  // ✅ UX 개선: 적용 상태 및 토스트
+  const [isApplied, setIsApplied] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   const rightsTypes = [
     {
@@ -98,7 +103,15 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
     };
 
     onUpdate({ copyrightTerms: newCopyrightTerms });
+
+    // ✅ UX 개선: 적용 피드백
+    setIsApplied(true);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
+
+  // ✅ 입력 변경 시 재적용 필요 상태로 변경
+  const markAsModified = () => setIsApplied(false);
 
   return (
     <div className="space-y-6">
@@ -134,7 +147,10 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <Card
               key={type.id}
               selected={selectedRightsType === type.id}
-              onClick={() => setSelectedRightsType(type.id)}
+              onClick={() => {
+                setSelectedRightsType(type.id);
+                setIsApplied(false);
+              }}
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -177,7 +193,10 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="checkbox"
               checked={economicRights.reproduction}
-              onChange={(e) => setEconomicRights({ ...economicRights, reproduction: e.target.checked })}
+              onChange={(e) => {
+                setEconomicRights({ ...economicRights, reproduction: e.target.checked });
+                setIsApplied(false);
+              }}
               className="w-4 h-4"
             />
             <div className="flex-1">
@@ -190,7 +209,10 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="checkbox"
               checked={economicRights.distribution}
-              onChange={(e) => setEconomicRights({ ...economicRights, distribution: e.target.checked })}
+              onChange={(e) => {
+                setEconomicRights({ ...economicRights, distribution: e.target.checked });
+                markAsModified();
+              }}
               className="w-4 h-4"
             />
             <div className="flex-1">
@@ -203,7 +225,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="checkbox"
               checked={economicRights.publicPerformance}
-              onChange={(e) => setEconomicRights({ ...economicRights, publicPerformance: e.target.checked })}
+              onChange={(e) => { setEconomicRights({ ...economicRights, publicPerformance: e.target.checked }); markAsModified(); }}
               className="w-4 h-4"
             />
             <div className="flex-1">
@@ -216,7 +238,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="checkbox"
               checked={economicRights.publicTransmission}
-              onChange={(e) => setEconomicRights({ ...economicRights, publicTransmission: e.target.checked })}
+              onChange={(e) => { setEconomicRights({ ...economicRights, publicTransmission: e.target.checked }); markAsModified(); }}
               className="w-4 h-4"
             />
             <div className="flex-1">
@@ -229,7 +251,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="checkbox"
               checked={economicRights.exhibition}
-              onChange={(e) => setEconomicRights({ ...economicRights, exhibition: e.target.checked })}
+              onChange={(e) => { setEconomicRights({ ...economicRights, exhibition: e.target.checked }); markAsModified(); }}
               className="w-4 h-4"
             />
             <div className="flex-1">
@@ -242,7 +264,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="checkbox"
               checked={economicRights.rental}
-              onChange={(e) => setEconomicRights({ ...economicRights, rental: e.target.checked })}
+              onChange={(e) => { setEconomicRights({ ...economicRights, rental: e.target.checked }); markAsModified(); }}
               className="w-4 h-4"
             />
             <div className="flex-1">
@@ -272,7 +294,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="radio"
               checked={derivativeWorks.separateNegotiation && !derivativeWorks.included}
-              onChange={() => setDerivativeWorks({ included: false, separateNegotiation: true })}
+              onChange={() => { setDerivativeWorks({ included: false, separateNegotiation: true }); markAsModified(); }}
               className="w-4 h-4"
             />
             <div>
@@ -285,7 +307,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="radio"
               checked={derivativeWorks.included}
-              onChange={() => setDerivativeWorks({ ...derivativeWorks, included: true, separateNegotiation: false })}
+              onChange={() => { setDerivativeWorks({ ...derivativeWorks, included: true, separateNegotiation: false }); markAsModified(); }}
               className="w-4 h-4"
             />
             <div>
@@ -319,7 +341,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
           <input
             type="checkbox"
             checked={usagePeriod.perpetual}
-            onChange={(e) => setUsagePeriod({ ...usagePeriod, perpetual: e.target.checked })}
+            onChange={(e) => { setUsagePeriod({ ...usagePeriod, perpetual: e.target.checked }); markAsModified(); }}
             className="w-4 h-4"
           />
           <span className="font-medium">무기한 사용</span>
@@ -354,7 +376,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
         <h3 className="text-lg font-semibold text-gray-900">5. 사용 지역</h3>
         <select
           value={usageRegion}
-          onChange={(e) => setUsageRegion(e.target.value)}
+          onChange={(e) => { setUsageRegion(e.target.value); markAsModified(); }}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
         >
           <option value="대한민국">대한민국</option>
@@ -365,10 +387,30 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
 
       {/* 적용 버튼 */}
       <div className="flex justify-end gap-3 pt-4 border-t">
-        <Button onClick={handleApply}>
-          저작권 설정 적용
+        <Button
+          onClick={handleApply}
+          variant={isApplied ? 'secondary' : 'primary'}
+          disabled={isApplied}
+        >
+          {isApplied ? (
+            <>
+              <Check size={18} />
+              <span>적용 완료</span>
+            </>
+          ) : (
+            '저작권 설정 적용'
+          )}
         </Button>
       </div>
+
+      {/* ✅ 토스트 메시지 */}
+      {showToast && (
+        <Toast
+          message="✅ 저작권 설정이 저장되었어요!"
+          type="success"
+          onClose={() => setShowToast(false)}
+        />
+      )}
 
       {/* 안내 메시지 */}
       <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
