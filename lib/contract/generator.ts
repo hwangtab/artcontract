@@ -232,7 +232,7 @@ function generateArticle7_RightsAttribution(formData: EnhancedContractFormData):
       return map[s] || s;
     }).join(', ') || '[사용 범위 미정]';
 
-    content += `① 본 저작물의 저작재산권은 갑에게 양도한다.\n\n② **저작인격권은 을에게 유보되며 양도할 수 없다.**\n\n③ 사용 범위: **${scopeKor}**\n\n④ 본 조에서 정하지 않은 권리는 을에게 유보된다.\n\n`;
+    content += `① 을은 갑이 본 저작물을 사용하는 것을 허락한다. (이용허락)\n\n② 사용 범위: **${scopeKor}**\n\n③ **저작인격권은 을에게 유보되며 양도할 수 없다.**\n\n④ 본 계약에서 명시적으로 허락되지 않은 모든 권리는 창작자 "을"에게 유보된다.\n\n`;
   }
 
   content += `---\n\n`;

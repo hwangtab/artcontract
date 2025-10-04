@@ -54,7 +54,7 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
   const handleStartChange = (value: string) => {
     setStartInput(value);
     if (value) {
-      const date = new Date(value);
+      const date = new Date(value + 'T00:00:00');
       onUpdate(date, deadline);
     } else {
       onUpdate(undefined, deadline);
@@ -64,7 +64,7 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
   const handleDeadlineChange = (value: string) => {
     setDeadlineInput(value);
     if (value) {
-      const date = new Date(value);
+      const date = new Date(value + 'T00:00:00');
       onUpdate(startDate, date);
     } else {
       onUpdate(startDate, undefined);

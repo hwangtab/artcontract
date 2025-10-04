@@ -112,6 +112,12 @@ export function detectContractRisks(
 
   // 1. 저작인격권 양도 시도 감지 (가장 치명적)
   const enhanced = formData as EnhancedContractFormData;
+
+  // 금액 변수 먼저 선언 (저작권 검사에서 사용)
+  const payment = formData.payment;
+  const enhancedPay = enhanced.enhancedPayment;
+  const amount = enhancedPay?.totalAmount ?? payment?.amount;
+
   if (enhanced.copyrightTerms) {
     // 저작인격권은 항상 창작자 보유 (법적으로 양도 불가)
     // 만약 UI에서 양도 시도가 있다면 즉시 차단
@@ -153,7 +159,7 @@ export function detectContractRisks(
     // 3. 전부 양도 + 저가 계약 감지
     if (
       enhanced.copyrightTerms.rightsType === 'full_transfer' &&
-      (formData.payment?.amount || 0) < 1000000
+      (amount || 0) < 1000000
     ) {
       warnings.push({
         id: 'full_transfer_low_price',
@@ -171,7 +177,7 @@ export function detectContractRisks(
     // 4. 권리 기간 무기한 + 저가
     if (
       enhanced.copyrightTerms.usagePeriod?.perpetual &&
-      (formData.payment?.amount || 0) < 500000
+      (amount || 0) < 500000
     ) {
       warnings.push({
         id: 'perpetual_low_price',
@@ -187,12 +193,7 @@ export function detectContractRisks(
 
   // ========== HIGH: 금액 관련 위험 ==========
 
-  const payment = formData.payment;
-  const enhancedPay = enhanced.enhancedPayment;
-
-  const amount = enhancedPay?.totalAmount || payment?.amount || 0;
-
-  if (amount === 0 || (!payment && !enhancedPay)) {
+  if (amount === undefined) {
     warnings.push({
       id: 'no_payment',
       severity: 'danger',
@@ -202,24 +203,21 @@ export function detectContractRisks(
       dismissible: false,
       relatedField: 'payment.amount',
     });
-  } else {
-
+  } else if (amount === 0) {
     // 5. 0원 계약
-    if (amount === 0) {
-      criticalErrors.push('금액은 0원일 수 없습니다!');
-      warnings.push({
-        id: 'zero_payment',
-        severity: 'danger',
-        message: '🚨 금액이 0원입니다!',
-        suggestion: '무료 작업이더라도 최소 금액(1만원)을 명시하세요. 법적 보호를 받으려면 금액이 필요합니다.',
-        autoTrigger: true,
-        dismissible: false,
-        relatedField: 'payment.amount',
-      });
-    }
-
+    criticalErrors.push('금액은 0원일 수 없습니다!');
+    warnings.push({
+      id: 'zero_payment',
+      severity: 'danger',
+      message: '🚨 금액이 0원입니다!',
+      suggestion: '무료 작업이더라도 최소 금액(1만원)을 명시하세요. 법적 보호를 받으려면 금액이 필요합니다.',
+      autoTrigger: true,
+      dismissible: false,
+      relatedField: 'payment.amount',
+    });
+  } else {
     // 6. 극저가 계약 (5만원 미만)
-    if (amount > 0 && amount < 50000) {
+    if (amount < 50000) {
       warnings.push({
         id: 'very_low_payment',
         severity: 'danger',

@@ -332,7 +332,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
               <input
                 type="date"
                 value={usagePeriod.start.toISOString().split('T')[0]}
-                onChange={(e) => setUsagePeriod({ ...usagePeriod, start: new Date(e.target.value) })}
+                onChange={(e) => setUsagePeriod({ ...usagePeriod, start: new Date(e.target.value + 'T00:00:00') })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
@@ -341,7 +341,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
               <input
                 type="date"
                 value={usagePeriod.end.toISOString().split('T')[0]}
-                onChange={(e) => setUsagePeriod({ ...usagePeriod, end: new Date(e.target.value) })}
+                onChange={(e) => setUsagePeriod({ ...usagePeriod, end: new Date(e.target.value + 'T00:00:00') })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
