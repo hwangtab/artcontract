@@ -23,6 +23,8 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
   const [deadlineInput, setDeadlineInput] = useState(
     deadline ? deadline.toISOString().split('T')[0] : ''
   );
+  // ✅ AI 코칭 중복 방지
+  const [lastCoachedDeadline, setLastCoachedDeadline] = useState<string | null>(null);
 
   useEffect(() => {
     setStartInput(startDate ? startDate.toISOString().split('T')[0] : '');
@@ -75,6 +77,9 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
     // ✅ deadlineInput(로컬 상태)을 직접 파싱하여 최신 값 사용
     if (!deadlineInput) return;
 
+    // ✅ 중복 방지: 같은 날짜에 대해 이미 코칭했으면 스킵
+    if (deadlineInput === lastCoachedDeadline) return;
+
     const parsedDeadline = new Date(deadlineInput);
     if (Number.isNaN(parsedDeadline.getTime())) return;
 
@@ -98,6 +103,7 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
 
     if (coachMessage) {
       onAICoach(coachMessage);
+      setLastCoachedDeadline(deadlineInput); // ✅ 코칭한 날짜 기록
     }
   };
 
@@ -183,6 +189,8 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
               type="date"
               value={startInput}
               onChange={(e) => handleStartChange(e.target.value)}
+              placeholder="YYYY-MM-DD"
+              pattern="\d{4}-\d{2}-\d{2}"
               className="w-full h-12 px-4 rounded-lg border-2 border-gray-300 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
             />
             <p className="text-sm text-gray-500 mt-1">작업을 시작하는 날짜</p>
@@ -198,6 +206,8 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
               value={deadlineInput}
               onChange={(e) => handleDeadlineChange(e.target.value)}
               onBlur={handleDeadlineBlur}
+              placeholder="YYYY-MM-DD"
+              pattern="\d{4}-\d{2}-\d{2}"
               className="w-full h-12 px-4 rounded-lg border-2 border-gray-300 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
               required
             />

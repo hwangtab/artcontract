@@ -53,13 +53,31 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     })),
   };
 
-  const response = await handleConversation(message, aiContext);
+  // ✅ AI API 호출 에러 핸들링
+  try {
+    const response = await handleConversation(message, aiContext);
 
-  return NextResponse.json({
-    success: true,
-    data: response,
-    timestamp: new Date().toISOString(),
-  } as ChatResponse);
+    return NextResponse.json({
+      success: true,
+      data: response,
+      timestamp: new Date().toISOString(),
+    } as ChatResponse);
+  } catch (error) {
+    console.error('AI conversation error:', error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'AI_SERVICE_ERROR',
+          message: 'AI 서비스에 일시적인 문제가 발생했어요. 잠시 후 다시 시도해주세요.',
+          details: error instanceof Error ? error.message : undefined,
+        },
+        timestamp: new Date().toISOString(),
+      } as ChatResponse,
+      { status: 500 }
+    );
+  }
 }
 
 export const POST = withApiHandler(handler, { rateLimiter: aiRateLimiter });

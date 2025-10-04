@@ -56,6 +56,8 @@ export default function Step06Revisions({
   const [feeInput, setFeeInput] = useState(
     additionalRevisionFee ? additionalRevisionFee.toString() : ''
   );
+  // ✅ AI 코칭 중복 방지
+  const [lastCoachedRevision, setLastCoachedRevision] = useState<number | 'unlimited' | null>(null);
 
   const presetOptions = [
     { value: 2, label: '✌️ 2회', description: '간단한 작업에 적합' },
@@ -68,8 +70,8 @@ export default function Step06Revisions({
     setShowCustomInput(false);
     onUpdate(value, additionalRevisionFee);
 
-    // AI 코칭
-    if (onAICoach) {
+    // ✅ AI 코칭 (중복 방지 적용)
+    if (onAICoach && value !== lastCoachedRevision) {
       let coachMessage = '';
       if (value === 2) {
         coachMessage = '✌️ 2회 수정이시군요! 간단한 작업에 적합해요. 대폭 변경이 필요하면 별도 비용을 받으세요!';
@@ -80,6 +82,7 @@ export default function Step06Revisions({
       }
       if (coachMessage) {
         onAICoach(coachMessage);
+        setLastCoachedRevision(value); // ✅ 코칭한 값 기록
       }
     }
   };
@@ -106,9 +109,10 @@ export default function Step06Revisions({
       setShowCustomInput(false);
       onUpdate('unlimited', additionalRevisionFee);
 
-      // AI 코칭 - 무제한 선택 시 강력 경고
-      if (onAICoach) {
+      // ✅ AI 코칭 - 무제한 선택 시 강력 경고 (중복 방지 적용)
+      if (onAICoach && lastCoachedRevision !== 'unlimited') {
         onAICoach('🚨 무제한 수정은 정말 위험해요! 클라이언트가 끊임없이 수정을 요구해서 시간과 에너지를 다 소진할 수 있어요. 반드시 횟수를 제한하시고, 추가 수정은 별도 비용을 받으세요!');
+        setLastCoachedRevision('unlimited'); // ✅ 코칭한 값 기록
       }
     }
   };
@@ -244,7 +248,7 @@ export default function Step06Revisions({
               value={feeInput}
               onChange={handleFeeChange}
               placeholder="예: 100000"
-              helper="정해진 횟수를 초과할 경우 받을 추가 비용"
+              helper="정수만 입력하세요 (정해진 횟수 초과 시 받을 비용)"
             />
             <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
               <p className="text-sm text-blue-800">

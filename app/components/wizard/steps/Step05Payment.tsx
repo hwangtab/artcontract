@@ -125,7 +125,7 @@ export default function Step05Payment({
             onChange={handleAmountChange}
             onBlur={handleAmountBlur}
             placeholder="500000"
-            helper="원 단위로 입력하세요"
+            helper="정수만 입력하세요 (소수점 제외)"
             required
           />
         </div>
