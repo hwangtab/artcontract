@@ -47,7 +47,8 @@ export default function Step08FinalCheck({ formData, onEdit, onGenerate }: Step0
 
   const getWorkItemsLabel = () => {
     if (!formData.workItems || formData.workItems.length === 0) return '단일 작업';
-    return formData.workItems.map((item) => item.title || '작업 항목').join(', ');
+    // ✅ 타이틀이 없는 항목은 "미정"으로 표시
+    return formData.workItems.map((item) => item.title || '미정').join(', ');
   };
 
   const summaryItems = [

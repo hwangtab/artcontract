@@ -8,8 +8,12 @@ export function useAIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const processingRef = useRef<Set<string>>(new Set()); // 진행 중인 메시지 추적
-  const addedMessageIds = useRef<Set<string>>(new Set()); // 추가된 메시지 ID 추적
+
+  // ✅ 중복 방지 시스템 설명:
+  // - processingRef: 동일한 요청의 중복 API 호출 방지 (사용자 메시지용)
+  // - addedMessageIds: 동일 메시지의 UI 중복 렌더링 방지 (AI 응답 & proactive 메시지용)
+  const processingRef = useRef<Set<string>>(new Set());
+  const addedMessageIds = useRef<Set<string>>(new Set());
 
   const openAssistant = useCallback(() => {
     setIsOpen(true);
@@ -63,6 +67,10 @@ export function useAIAssistant() {
       setIsLoading(true);
 
       try {
+        // ✅ 타임아웃 설정 (15초)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
         // API 호출 - 현재 메시지 목록을 변수에서 참조
         const response = await fetch('/api/chat', {
           method: 'POST',
@@ -75,7 +83,10 @@ export function useAIAssistant() {
               conversationHistory: currentMessages,
             },
           }),
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         // HTTP 오류 체크 (Rate Limit, Server Error 등)
         if (!response.ok) {
@@ -123,11 +134,16 @@ export function useAIAssistant() {
       } catch (error) {
         console.error('AI chat error:', error);
 
-        // Error 객체에서 메시지 추출 (HTTP 오류 or 일반 오류)
-        const errorContent =
-          error instanceof Error
-            ? error.message
-            : '죄송해요, 잠시 문제가 있어요. 다시 한번 물어봐 주세요! 😊';
+        // ✅ AbortError (타임아웃) 처리
+        let errorContent = '죄송해요, 잠시 문제가 있어요. 다시 한번 물어봐 주세요! 😊';
+
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            errorContent = '⏱️ 응답 시간이 초과되었어요. 네트워크 상태를 확인하고 다시 시도해주세요!';
+          } else {
+            errorContent = error.message;
+          }
+        }
 
         const errorMessage: AIMessage = {
           id: `msg_${Date.now()}_error_${Math.random().toString(36).substr(2, 9)}`,

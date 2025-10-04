@@ -63,19 +63,19 @@ export function useProactiveAlerts({ currentStep, formData, addProactiveMessage 
     if (currentStep >= 5 && amount !== undefined) {
       if (amount === 0) {
         registerWarning(
-          `payment_${amount}`,
+          'payment_zero',  // ✅ 카테고리 기반 ID
           '⚠️ 위험! 금액이 0원으로 설정되었어요. 무료로 작업하시는 건가요? 최소한 작업 비용은 받으셔야 해요!',
           'danger'
         );
       } else if (amount > 0 && amount < 50000) {
         registerWarning(
-          `payment_${amount}`,
+          'payment_low',  // ✅ 카테고리 기반 ID
           '💡 금액이 너무 낮은 것 같아요. 시간과 노력을 고려하면 최소 5만원 이상 받으시는 걸 추천해요.',
           'warning'
         );
       } else if (amount >= 1000000) {
         registerWarning(
-          `payment_${amount}`,
+          'payment_high',  // ✅ 카테고리 기반 ID
           '💼 100만원 이상 고액 계약이에요! 법률 전문가의 검토를 받는 것을 강력히 추천드려요.',
           'warning'
         );
@@ -86,20 +86,20 @@ export function useProactiveAlerts({ currentStep, formData, addProactiveMessage 
       if (typeof formData.revisions === 'number') {
         if (formData.revisions === 0) {
           registerWarning(
-            `revisions_${formData.revisions}`,
+            'revisions_zero',  // ✅ 카테고리 기반 ID
             '⚠️ 수정 0회는 너무 위험해요! 클라이언트가 결과물에 불만이 있어도 수정할 수 없다는 뜻이에요. 최소 1-2회는 보장하세요.',
             'danger'
           );
         } else if (formData.revisions >= 10) {
           registerWarning(
-            `revisions_${formData.revisions}`,
+            'revisions_high',  // ✅ 카테고리 기반 ID
             '⚠️ 위험! 수정 횟수가 너무 많아요. 무제한 작업에 빠질 수 있어요. 2-3회가 적당하고, 추가 수정비를 명시하세요!',
             'danger'
           );
         }
       } else if (formData.revisions === 'unlimited') {
         registerWarning(
-          'revisions_unlimited',
+          'revisions_unlimited',  // ✅ 이미 카테고리 기반
           '🚨 무제한 수정은 절대 금물! 끝없는 수정 요청에 시달릴 수 있어요. 반드시 횟수를 정하세요!',
           'danger'
         );
@@ -113,13 +113,13 @@ export function useProactiveAlerts({ currentStep, formData, addProactiveMessage 
 
       if (daysUntilDeadline <= 1) {
         registerWarning(
-          `deadline_${daysUntilDeadline}`,
+          'deadline_urgent',  // ✅ 카테고리 기반 ID
           '🚨 급함! 마감일이 오늘 또는 내일이에요. 이렇게 촉박한 일정이면 러시 추가 요금(50-100%)을 반드시 받으세요!',
           'danger'
         );
       } else if (daysUntilDeadline <= 3) {
         registerWarning(
-          `deadline_${daysUntilDeadline}`,
+          'deadline_soon',  // ✅ 카테고리 기반 ID
           '⚠️ 마감일이 3일 이내예요. 촉박한 일정이면 러시 요금을 청구하는 걸 추천드려요.',
           'warning'
         );
@@ -131,7 +131,7 @@ export function useProactiveAlerts({ currentStep, formData, addProactiveMessage 
 
       if (amount < suggestedMin * 1.5) {
         registerWarning(
-          `commercial_${amount}`,
+          'commercial_low',  // ✅ 카테고리 기반 ID
           '💼 상업적 사용 계약이에요! 개인 사용보다 최소 2배 이상 받으셔야 공정해요.',
           'warning'
         );
@@ -143,7 +143,7 @@ export function useProactiveAlerts({ currentStep, formData, addProactiveMessage 
 
       if (amount < suggestedMin * 2) {
         registerWarning(
-          `exclusive_${amount}`,
+          'exclusive_low',  // ✅ 카테고리 기반 ID
           '🔒 독점권 계약이에요! 일반 계약보다 3-5배 높게 받으셔야 해요. 다른 곳에서 못 쓰는 만큼 보상받으세요!',
           'danger'
         );

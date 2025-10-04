@@ -33,7 +33,8 @@ export default function ContractResult({ contract, onEdit }: ContractResultProps
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `계약서_${new Date().toISOString().split('T')[0]}.txt`;
+    // ✅ 한글 파일명 → 영문 파일명 (브라우저 호환성 개선)
+    link.download = `contract_${new Date().toISOString().split('T')[0]}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -56,7 +56,16 @@ export default function WizardContainer() {
   const handleGenerateContract = async () => {
     // 템플릿 가져오기
     try {
-      const response = await fetch(`/api/templates?field=${formData.field}`);
+      // ✅ 타임아웃 설정 (10초)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch(`/api/templates?field=${formData.field}`, {
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
         throw new Error(`Failed to fetch template: ${response.status}`);
       }
@@ -71,7 +80,14 @@ export default function WizardContainer() {
       }
     } catch (error) {
       console.error('Contract generation failed:', error);
-      addProactiveMessage('계약서 템플릿을 불러오지 못했어요. 잠시 후 다시 시도해주세요.', 'danger');
+
+      // ✅ 타임아웃 에러 처리
+      let errorMsg = '계약서 템플릿을 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
+      if (error instanceof Error && error.name === 'AbortError') {
+        errorMsg = '⏱️ 템플릿 로딩 시간이 초과되었어요. 네트워크를 확인하고 다시 시도해주세요.';
+      }
+
+      addProactiveMessage(errorMsg, 'danger');
     }
   };
 

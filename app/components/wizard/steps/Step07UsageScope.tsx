@@ -94,15 +94,18 @@ export default function Step07UsageScope({
   };
 
   const toggleCommercial = () => {
-    let newScope = [...usageScope];
+    let newScope: UsageScope[];
 
     if (!commercialUse) {
-      if (!newScope.includes('commercial')) {
-        newScope.push('commercial');
+      // ✅ 불변성 유지: push 대신 spread 사용
+      if (!usageScope.includes('commercial')) {
+        newScope = [...usageScope, 'commercial'];
+      } else {
+        newScope = usageScope;
       }
       onUpdate({ usageScope: newScope, commercialUse: true, exclusiveRights });
     } else {
-      newScope = newScope.filter((s) => s !== 'commercial');
+      newScope = usageScope.filter((s) => s !== 'commercial');
       onUpdate({ usageScope: newScope, commercialUse: false, exclusiveRights });
     }
   };

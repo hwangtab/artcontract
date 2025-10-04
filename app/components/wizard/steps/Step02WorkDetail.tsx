@@ -165,15 +165,9 @@ export default function Step02WorkDetail({
   };
 
   const handleUpdateItem = (id: string, updates: Partial<WorkItemDraft>) => {
+    // ✅ 간소화: spread operator가 undefined 값도 올바르게 처리
     const next = items.map((item) =>
-      item.id === id
-        ? {
-            ...item,
-            ...updates,
-            quantity: updates.quantity === undefined ? item.quantity : updates.quantity,
-            unitPrice: updates.unitPrice === undefined ? item.unitPrice : updates.unitPrice,
-          }
-        : item
+      item.id === id ? { ...item, ...updates } : item
     );
     syncItems(next);
   };
@@ -186,10 +180,15 @@ export default function Step02WorkDetail({
   const handleAIAnalysis = async () => {
     if (!descriptionInput.trim()) return;
 
-    // 중복 체크: 동일한 description을 가진 항목이 이미 있는지 확인
-    const duplicateItem = items.find(
-      (item) => item.description?.trim().toLowerCase() === descriptionInput.trim().toLowerCase()
-    );
+    // ✅ 중복 체크: description 또는 title이 유사한 항목 찾기
+    const trimmedInput = descriptionInput.trim().toLowerCase();
+    const duplicateItem = items.find((item) => {
+      const itemDesc = item.description?.trim().toLowerCase() || '';
+      const itemTitle = item.title?.trim().toLowerCase() || '';
+
+      // description 완전 일치 또는 title 완전 일치
+      return itemDesc === trimmedInput || itemTitle === trimmedInput;
+    });
 
     if (duplicateItem) {
       // 중복 항목 발견 시 모달 표시
@@ -206,6 +205,10 @@ export default function Step02WorkDetail({
     setIsAnalyzing(true);
 
     try {
+      // ✅ 타임아웃 설정 (15초)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
       const response = await fetch('/api/analyze-work', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -213,7 +216,10 @@ export default function Step02WorkDetail({
           field,
           userInput: descriptionInput.trim(),
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const data = await response.json();
 
@@ -232,15 +238,21 @@ export default function Step02WorkDetail({
           aiAnalysis: result,
           workDescription: descriptionInput.trim(),
         });
-        // 성공 후 입력창 초기화 (중복 방지)
-        setDescriptionInput('');
+        // ✅ 입력창 초기화 제거 - useEffect가 workDescription prop 변경 시 동기화
       } else {
         setErrorMessage('AI 분석에 실패했어요. 네트워크 상태를 확인하고 다시 시도해주세요.');
         setShowErrorBanner(true);
       }
     } catch (error) {
       console.error('Analysis failed:', error);
-      setErrorMessage('AI 분석 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.');
+
+      // ✅ 타임아웃 에러 처리
+      let errorMsg = 'AI 분석 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.';
+      if (error instanceof Error && error.name === 'AbortError') {
+        errorMsg = '⏱️ AI 분석 시간이 초과되었어요. 네트워크 상태를 확인하고 다시 시도해주세요.';
+      }
+
+      setErrorMessage(errorMsg);
       setShowErrorBanner(true);
     } finally {
       setIsAnalyzing(false);
