@@ -21,22 +21,38 @@ export default function AssistantWindow({
 }: AssistantWindowProps) {
   const [input, setInput] = React.useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const quickQuestions = getQuickQuestions(currentStep);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // AI 응답 완료 후 자동 포커스
+  useEffect(() => {
+    if (!isLoading) {
+      inputRef.current?.focus();
+    }
+  }, [isLoading]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading) {
       onSendMessage(input.trim());
       setInput('');
+      // 메시지 전송 후 즉시 포커스 복귀
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
     }
   };
 
   const handleQuickQuestion = (question: string) => {
     onSendMessage(question);
+    // 빠른 질문 전송 후 포커스 복귀
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
   };
 
   return (
@@ -148,6 +164,7 @@ export default function AssistantWindow({
       <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200">
         <div className="flex gap-2">
           <input
+            ref={inputRef}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
