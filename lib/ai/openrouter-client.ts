@@ -1,6 +1,6 @@
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const DEFAULT_MODEL = 'x-ai/grok-4-fast:free';
-const MODEL = process.env.OPENROUTER_MODEL || process.env.NEXT_PUBLIC_OPENROUTER_MODEL || DEFAULT_MODEL;
+const MODEL = process.env.OPENROUTER_MODEL || DEFAULT_MODEL;
 
 export interface OpenRouterMessage {
   role: 'system' | 'user' | 'assistant';

@@ -123,22 +123,26 @@ export function useWizard() {
     });
   }, []);
 
+  // 계약서 리셋 (모달 확인 후 호출)
+  const resetContract = useCallback(() => {
+    setState({
+      currentStep: 0,
+      formData: initialFormData,
+      isComplete: false,
+      canGoNext: false,
+      canGoPrev: false,
+      completeness: 0,
+      visitedSteps: [0],
+    });
+  }, []);
+
   // 이전 단계
-  const prevStep = useCallback(() => {
+  const prevStep = useCallback((onRequestReset?: () => void) => {
     setState((prev) => {
-      // Step0에서 뒤로가기: 확인 후 리셋
+      // Step0에서 뒤로가기: 리셋 요청
       if (prev.currentStep === 0) {
-        if (typeof window !== 'undefined' &&
-            window.confirm('처음부터 다시 시작하시겠어요? 입력한 정보가 모두 삭제됩니다.')) {
-          return {
-            currentStep: 0,
-            formData: initialFormData,
-            isComplete: false,
-            canGoNext: false,
-            canGoPrev: false,
-            completeness: 0,
-            visitedSteps: [0],
-          };
+        if (onRequestReset) {
+          onRequestReset(); // WizardContainer가 모달 표시
         }
         return prev;
       }
@@ -212,5 +216,6 @@ export function useWizard() {
     goToStep,
     updateFormData,
     reset,
+    resetContract, // 모달 확인 후 호출할 함수
   };
 }

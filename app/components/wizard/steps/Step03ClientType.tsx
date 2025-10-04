@@ -11,7 +11,7 @@ interface Step03Props {
   clientType?: ClientType;
   clientName?: string;
   clientContact?: string;
-  aiAnalysis?: WorkAnalysis;
+  aiAnalysis?: WorkAnalysis | null;
   onUpdate: (data: { clientType?: ClientType; clientName?: string; clientContact?: string }) => void;
 }
 

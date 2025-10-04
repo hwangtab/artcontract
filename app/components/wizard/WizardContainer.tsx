@@ -19,6 +19,7 @@ import Step08FinalCheck from './steps/Step08FinalCheck';
 import ContractResult from '../contract/ContractResult';
 import AssistantButton from '../ai-assistant/AssistantButton';
 import AssistantWindow from '../ai-assistant/AssistantWindow';
+import ConfirmModal from '../shared/ConfirmModal';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { generateContract } from '@/lib/contract/generator';
 import { GeneratedContract, ContractTemplate } from '@/types/contract';
@@ -35,6 +36,7 @@ export default function WizardContainer() {
     prevStep,
     goToStep,
     updateFormData,
+    resetContract,
   } = useWizard();
 
   const {
@@ -47,6 +49,7 @@ export default function WizardContainer() {
   } = useAIAssistant();
 
   const [generatedContract, setGeneratedContract] = useState<GeneratedContract | null>(null);
+  const [showResetModal, setShowResetModal] = useState(false);
 
   useProactiveAlerts({ currentStep, formData, addProactiveMessage });
 
@@ -79,6 +82,19 @@ export default function WizardContainer() {
 
   const handleSendMessage = (message: string) => {
     sendMessage(message, formData, currentStep, updateFormData);
+  };
+
+  const handleRequestReset = () => {
+    setShowResetModal(true);
+  };
+
+  const handleConfirmReset = () => {
+    setShowResetModal(false);
+    resetContract();
+  };
+
+  const handleCancelReset = () => {
+    setShowResetModal(false);
   };
 
   const renderStep = () => {
@@ -253,7 +269,7 @@ export default function WizardContainer() {
           <div className="flex justify-between items-center">
             <Button
               variant="secondary"
-              onClick={prevStep}
+              onClick={() => prevStep(handleRequestReset)}
               disabled={!canGoPrev}
             >
               <ChevronLeft size={20} />
@@ -314,6 +330,24 @@ export default function WizardContainer() {
           onSendMessage={handleSendMessage}
         />
       )}
+
+      {/* Reset Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showResetModal}
+        title="계약서 초기화"
+        message={
+          <>
+            처음부터 다시 시작하시겠어요?
+            <br />
+            <br />
+            입력한 모든 정보가 삭제됩니다.
+          </>
+        }
+        confirmLabel="초기화"
+        cancelLabel="취소"
+        onConfirm={handleConfirmReset}
+        onCancel={handleCancelReset}
+      />
     </div>
   );
 }

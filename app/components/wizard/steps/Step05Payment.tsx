@@ -26,7 +26,6 @@ export default function Step05Payment({
 }: Step05Props) {
   const [amountInput, setAmountInput] = useState(amount ? amount.toString() : '');
   const [depositInput, setDepositInput] = useState(deposit ? deposit.toString() : '');
-  const [hasCoached, setHasCoached] = useState(false);
 
   useEffect(() => {
     setAmountInput(amount ? amount.toString() : '');
@@ -91,10 +90,9 @@ export default function Step05Payment({
       coachMessage = `🏆 ${formatCurrency(parsedAmount)}! 고액 계약이에요. 법률 전문가 검토를 받는 걸 강력히 추천해요. 한국저작권위원회(02-2669-0100)에 무료 상담을 신청하세요!`;
     }
 
-    if (!coachMessage || hasCoached) return;
-
-    onAICoach(coachMessage);
-    setHasCoached(true);
+    if (coachMessage) {
+      onAICoach(coachMessage);
+    }
   };
 
   const handleApplyItemsTotal = () => {

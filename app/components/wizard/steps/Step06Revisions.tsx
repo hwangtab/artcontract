@@ -12,7 +12,7 @@ import { WorkAnalysis } from '@/types/contract';
 interface Step06Props {
   revisions?: number | 'unlimited' | null;
   additionalRevisionFee?: number;
-  aiAnalysis?: WorkAnalysis;
+  aiAnalysis?: WorkAnalysis | null;
   onUpdate: (revisions?: number | 'unlimited' | null, additionalFee?: number) => void;
   onAICoach?: (message: string) => void;
 }
@@ -56,7 +56,6 @@ export default function Step06Revisions({
   const [feeInput, setFeeInput] = useState(
     additionalRevisionFee ? additionalRevisionFee.toString() : ''
   );
-  const [hasCoached, setHasCoached] = useState(false);
 
   const presetOptions = [
     { value: 2, label: '✌️ 2회', description: '간단한 작업에 적합' },
@@ -70,7 +69,7 @@ export default function Step06Revisions({
     onUpdate(value, additionalRevisionFee);
 
     // AI 코칭
-    if (!hasCoached && onAICoach) {
+    if (onAICoach) {
       let coachMessage = '';
       if (value === 2) {
         coachMessage = '✌️ 2회 수정이시군요! 간단한 작업에 적합해요. 대폭 변경이 필요하면 별도 비용을 받으세요!';
@@ -81,7 +80,6 @@ export default function Step06Revisions({
       }
       if (coachMessage) {
         onAICoach(coachMessage);
-        setHasCoached(true);
       }
     }
   };
@@ -109,9 +107,8 @@ export default function Step06Revisions({
       onUpdate('unlimited', additionalRevisionFee);
 
       // AI 코칭 - 무제한 선택 시 강력 경고
-      if (!hasCoached && onAICoach) {
+      if (onAICoach) {
         onAICoach('🚨 무제한 수정은 정말 위험해요! 클라이언트가 끊임없이 수정을 요구해서 시간과 에너지를 다 소진할 수 있어요. 반드시 횟수를 제한하시고, 추가 수정은 별도 비용을 받으세요!');
-        setHasCoached(true);
       }
     }
   };

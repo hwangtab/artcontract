@@ -23,7 +23,6 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
   const [deadlineInput, setDeadlineInput] = useState(
     deadline ? deadline.toISOString().split('T')[0] : ''
   );
-  const [hasCoached, setHasCoached] = useState(false);
 
   useEffect(() => {
     setStartInput(startDate ? startDate.toISOString().split('T')[0] : '');
@@ -71,7 +70,10 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
   };
 
   const handleDeadlineBlur = () => {
-    if (!deadlineInput || hasCoached || !onAICoach) return;
+    if (!onAICoach) return;
+
+    // ✅ deadlineInput(로컬 상태)을 직접 파싱하여 최신 값 사용
+    if (!deadlineInput) return;
 
     const parsedDeadline = new Date(deadlineInput);
     if (Number.isNaN(parsedDeadline.getTime())) return;
@@ -96,7 +98,6 @@ export default function Step04Timeline({ startDate, deadline, aiAnalysis, onUpda
 
     if (coachMessage) {
       onAICoach(coachMessage);
-      setHasCoached(true);
     }
   };
 
