@@ -1,5 +1,5 @@
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = 'x-ai/grok-4-fast:free';
+const DEFAULT_MODEL = 'google/gemini-2.0-flash-exp:free';
 const MODEL = process.env.OPENROUTER_MODEL || DEFAULT_MODEL;
 
 export interface OpenRouterMessage {
