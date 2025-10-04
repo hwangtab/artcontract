@@ -86,6 +86,7 @@ export default function Step02WorkDetail({
   );
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<WorkAnalysis | null>(aiAnalysis || null);
+  const [isAnalysisOutdated, setIsAnalysisOutdated] = useState(false); // ✅ 분석 결과 만료 상태
   const [showQuickOptions, setShowQuickOptions] = useState(false);
   const [showErrorBanner, setShowErrorBanner] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -143,9 +144,9 @@ export default function Step02WorkDetail({
     setDescriptionInput(value);
     const trimmed = value.trim();
 
-    if (analysisResult) {
-      setAnalysisResult(null);
-      onUpdate({ aiAnalysis: null });
+    // ✅ UX 개선: 분석 결과를 즉시 삭제하지 않고 "만료됨" 상태로 표시
+    if (analysisResult && !isAnalysisOutdated) {
+      setIsAnalysisOutdated(true);
     }
 
     onUpdate({
@@ -196,14 +197,12 @@ export default function Step02WorkDetail({
     await performAIAnalysis();
   };
 
-  const performAIAnalysis = async () => {
-    setIsAnalyzing(true);
+  // ✅ 함수 분리 1: API 호출
+  const callAnalysisApi = async (): Promise<WorkAnalysis | null> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
-      // ✅ 타임아웃 설정 (15초)
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-
       const response = await fetch('/api/analyze-work', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -215,147 +214,124 @@ export default function Step02WorkDetail({
       });
 
       clearTimeout(timeoutId);
-
       const data = await response.json();
 
       if (data.success && data.data) {
-        const result: WorkAnalysis = data.data;
+        return data.data;
+      }
+
+      throw new Error('API response invalid');
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
+  };
+
+  // ✅ 함수 분리 2: WorkItems 생성
+  const populateWorkItems = (result: WorkAnalysis) => {
+    if (result.workItems && result.workItems.length > 0) {
+      const newItems: WorkItemDraft[] = result.workItems.map((item) => ({
+        ...createEmptyItem(item.title),
+        title: item.title,
+        description: item.description || '',
+        deliverables: item.deliverables || '',
+        unitPrice: item.estimatedPrice,
+        quantity: item.quantity,
+      }));
+      const nextItems = [...items, ...newItems];
+      syncItems(nextItems);
+    } else {
+      const newItem: WorkItemDraft = {
+        ...createEmptyItem(result.workType || 'AI 추천 작업'),
+        title: result.workType || 'AI 추천 작업',
+        description: descriptionInput.trim(),
+      };
+      const nextItems = [...items, newItem];
+      syncItems(nextItems);
+    }
+  };
+
+  // ✅ 함수 분리 3: 다음 단계 자동 채우기
+  const populateNextSteps = (result: WorkAnalysis) => {
+    const updates: any = {
+      aiAnalysis: result,
+      workDescription: descriptionInput.trim(),
+    };
+
+    // 클라이언트 정보 (Step 3)
+    if (result.clientName) {
+      updates.clientName = result.clientName;
+    }
+    if (result.clientType && result.clientType !== 'unknown') {
+      updates.clientType = result.clientType;
+    }
+
+    // 총 금액 (Step 5)
+    if (result.totalAmount) {
+      updates.payment = {
+        currency: 'KRW',
+        amount: result.totalAmount,
+      };
+    }
+
+    // 일정 (Step 4)
+    if (result.estimatedDays) {
+      const today = new Date();
+      const deadline = new Date(today);
+      deadline.setDate(deadline.getDate() + result.estimatedDays);
+
+      updates.timeline = {
+        startDate: today,
+        deadline: deadline,
+        estimatedDays: result.estimatedDays,
+      };
+    }
+
+    // 사용 범위 (Step 7)
+    if (result.usageScope && result.usageScope.length > 0) {
+      updates.usageScope = result.usageScope;
+    }
+
+    // 상업적 사용 (Step 7)
+    if (result.commercialUse !== undefined) {
+      updates.commercialUse = result.commercialUse;
+    }
+
+    onUpdate(updates);
+  };
+
+  // ✅ 함수 분리 4: 에러 처리
+  const handleAnalysisError = (error: unknown) => {
+    console.error('Analysis failed:', error);
+
+    let errorMsg = 'AI 분석 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.';
+    if (error instanceof Error && error.name === 'AbortError') {
+      errorMsg = '⏱️ AI 분석 시간이 초과되었어요. 네트워크 상태를 확인하고 다시 시도해주세요.';
+    }
+
+    setErrorMessage(errorMsg);
+    setShowErrorBanner(true);
+  };
+
+  // ✅ 메인 함수: 조율자 역할
+  const performAIAnalysis = async () => {
+    setIsAnalyzing(true);
+
+    try {
+      const result = await callAnalysisApi();
+
+      if (result) {
         setAnalysisResult(result);
+        setIsAnalysisOutdated(false); // ✅ 새로운 분석 결과는 최신 상태
         setShowErrorBanner(false);
-
-        // ✅ AI가 여러 작업으로 나눈 경우 workItems 배열 처리
-        if (result.workItems && result.workItems.length > 0) {
-          const newItems: WorkItemDraft[] = result.workItems.map((item) => ({
-            ...createEmptyItem(item.title),
-            title: item.title,
-            description: item.description || '',
-            deliverables: item.deliverables || '',
-            unitPrice: item.estimatedPrice,
-            quantity: item.quantity,
-          }));
-          const nextItems = [...items, ...newItems];
-          syncItems(nextItems);
-
-          // ✅ AI가 추출한 정보를 다음 단계에 자동 채우기
-          const updates: any = {
-            aiAnalysis: result,
-            workDescription: descriptionInput.trim(),
-          };
-
-          // 클라이언트 이름 자동 입력 (Step 3)
-          if (result.clientName) {
-            updates.clientName = result.clientName;
-          }
-
-          // 클라이언트 타입 자동 입력 (Step 3)
-          if (result.clientType && result.clientType !== 'unknown') {
-            updates.clientType = result.clientType;
-          }
-
-          // 총 금액 자동 입력 (Step 5)
-          if (result.totalAmount) {
-            updates.payment = {
-              currency: 'KRW',
-              amount: result.totalAmount,
-            };
-          }
-
-          // 일정 자동 입력 (Step 4)
-          if (result.estimatedDays) {
-            const today = new Date();
-            const deadline = new Date(today);
-            deadline.setDate(deadline.getDate() + result.estimatedDays);
-
-            updates.timeline = {
-              startDate: today,
-              deadline: deadline,
-              estimatedDays: result.estimatedDays,
-            };
-          }
-
-          // 사용 범위 자동 입력 (Step 7)
-          if (result.usageScope && result.usageScope.length > 0) {
-            updates.usageScope = result.usageScope;
-          }
-
-          // 상업적 사용 자동 입력 (Step 7)
-          if (result.commercialUse !== undefined) {
-            updates.commercialUse = result.commercialUse;
-          }
-
-          onUpdate(updates);
-        } else {
-          // 단일 작업 (기존 로직)
-          const newItem: WorkItemDraft = {
-            ...createEmptyItem(result.workType || 'AI 추천 작업'),
-            title: result.workType || 'AI 추천 작업',
-            description: descriptionInput.trim(),
-          };
-          const nextItems = [...items, newItem];
-          syncItems(nextItems);
-
-          // ✅ 단일 작업도 자동 채우기 적용
-          const updates: any = {
-            aiAnalysis: result,
-            workDescription: descriptionInput.trim(),
-          };
-
-          if (result.clientName) {
-            updates.clientName = result.clientName;
-          }
-
-          if (result.clientType && result.clientType !== 'unknown') {
-            updates.clientType = result.clientType;
-          }
-
-          if (result.totalAmount) {
-            updates.payment = {
-              currency: 'KRW',
-              amount: result.totalAmount,
-            };
-          }
-
-          // 일정 자동 입력 (Step 4)
-          if (result.estimatedDays) {
-            const today = new Date();
-            const deadline = new Date(today);
-            deadline.setDate(deadline.getDate() + result.estimatedDays);
-
-            updates.timeline = {
-              startDate: today,
-              deadline: deadline,
-              estimatedDays: result.estimatedDays,
-            };
-          }
-
-          // 사용 범위 자동 입력 (Step 7)
-          if (result.usageScope && result.usageScope.length > 0) {
-            updates.usageScope = result.usageScope;
-          }
-
-          // 상업적 사용 자동 입력 (Step 7)
-          if (result.commercialUse !== undefined) {
-            updates.commercialUse = result.commercialUse;
-          }
-
-          onUpdate(updates);
-        }
-        // ✅ 입력창 초기화 제거 - useEffect가 workDescription prop 변경 시 동기화
+        populateWorkItems(result);
+        populateNextSteps(result);
       } else {
         setErrorMessage('AI 분석에 실패했어요. 네트워크 상태를 확인하고 다시 시도해주세요.');
         setShowErrorBanner(true);
       }
     } catch (error) {
-      console.error('Analysis failed:', error);
-
-      // ✅ 타임아웃 에러 처리
-      let errorMsg = 'AI 분석 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.';
-      if (error instanceof Error && error.name === 'AbortError') {
-        errorMsg = '⏱️ AI 분석 시간이 초과되었어요. 네트워크 상태를 확인하고 다시 시도해주세요.';
-      }
-
-      setErrorMessage(errorMsg);
-      setShowErrorBanner(true);
+      handleAnalysisError(error);
     } finally {
       setIsAnalyzing(false);
     }
@@ -568,11 +544,41 @@ export default function Step02WorkDetail({
 
         {/* AI 분석 결과 */}
         {analysisResult && (
-          <div className="bg-gradient-to-r from-primary-50 to-blue-50 p-6 rounded-xl border-2 border-primary-300">
-            <div className="flex items-center gap-2 mb-4">
-              <Check className="text-success" size={24} />
-              <h3 className="font-semibold text-lg">💡 AI 분석 결과</h3>
+          <div className={`p-6 rounded-xl border-2 ${
+            isAnalysisOutdated
+              ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-warning'
+              : 'bg-gradient-to-r from-primary-50 to-blue-50 border-primary-300'
+          }`}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                {isAnalysisOutdated ? (
+                  <AlertTriangle className="text-warning" size={24} />
+                ) : (
+                  <Check className="text-success" size={24} />
+                )}
+                <h3 className="font-semibold text-lg">
+                  {isAnalysisOutdated ? '⚠️ 내용이 변경되었어요' : '💡 AI 분석 결과'}
+                </h3>
+              </div>
+              {isAnalysisOutdated && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={performAIAnalysis}
+                  disabled={isAnalyzing}
+                >
+                  {isAnalyzing ? '분석 중...' : '🔄 재분석'}
+                </Button>
+              )}
             </div>
+
+            {isAnalysisOutdated && (
+              <div className="mb-4 p-3 bg-white/80 rounded-lg border border-warning/30">
+                <p className="text-sm text-gray-700">
+                  💡 작업 설명을 수정하셨어요. 다시 분석하면 최신 내용을 반영한 결과를 받을 수 있어요!
+                </p>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div className="bg-white/80 p-4 rounded-lg">
