@@ -125,7 +125,10 @@ export default function Step01FieldSelection({ selectedField, subField, onSelect
       {/* 세부 장르 선택 */}
       {selectedField && selectedFieldData && selectedFieldData.subFields.length > 0 && (
         <div className="mt-6 p-6 bg-white rounded-xl border-2 border-primary-200 shadow-sm">
-          <h3 className="font-semibold text-gray-900 mb-4">세부 장르를 선택하세요</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">주요 작업 분야를 선택하세요</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            여러 작업을 진행하신다면 가장 중요한 작업을 선택하세요. 나머지는 다음 단계에서 추가할 수 있어요! 😊
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {selectedFieldData.subFields.map((sub) => (
               <button
@@ -174,7 +177,7 @@ export default function Step01FieldSelection({ selectedField, subField, onSelect
 
       <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <p className="text-sm text-blue-800">
-          💡 <strong>팁:</strong> 세부 장르까지 선택하면 계약서가 더 정확하고 안전해져요!
+          💡 <strong>팁:</strong> 주 작업을 선택하면 AI가 관련 작업들을 추천해드려요! 다음 단계에서 여러 작업을 추가할 수 있어요.
         </p>
       </div>
     </div>

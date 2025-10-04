@@ -301,12 +301,14 @@ export default function Step02WorkDetail({
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">어떤 작업들을 맡으셨나요?</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">작업 내용을 자세히 알려주세요</h2>
         <p className="text-gray-600">
           ✓ 선택하신 분야: <strong>{fieldLabels[field]}</strong>
         </p>
         <p className="text-sm text-gray-500 mt-2">
-          여러 작업을 동시에 진행하신다면 각각의 항목을 추가해 주세요.
+          📝 {fieldLabels[field]} 외에 다른 작업도 있다면 함께 입력해주세요.
+          <br />
+          💡 AI가 자동으로 여러 작업으로 나눠드려요!
         </p>
       </div>
 
@@ -321,7 +323,7 @@ export default function Step02WorkDetail({
           <textarea
             value={descriptionInput}
             onChange={(e) => handleDescriptionChange(e.target.value)}
-            placeholder="예: 싱글 앨범 제작을 맡았어요. 작곡, 편곡, 녹음, 믹싱, 마스터링까지 진행합니다."
+            placeholder="예: 작곡이 메인이지만 편곡, 믹싱, 마스터링도 함께 진행합니다."
             className="w-full h-32 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none resize-none"
             disabled={isAnalyzing}
           />
