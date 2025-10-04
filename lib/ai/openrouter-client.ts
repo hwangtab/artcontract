@@ -88,10 +88,29 @@ export class OpenRouterClient {
 입력: "${userInput}"
 분야: "${field}"
 
+**중요: 입력에서 여러 작업 단계를 감지하면 반드시 workItems 배열로 나눠주세요!**
+
+예시:
+- "작곡, 편곡, 믹싱" → workItems 3개
+- "로고 디자인과 명함 디자인" → workItems 2개
+- "단순 로고 디자인" → workItems null (단일 작업)
+
 다음 JSON 형식으로 정확히 분석하세요 (JSON만 출력, 주석 없이):
 
 {
-  "workType": "구체적 작업 분류",
+  "workType": "전체 작업명 (예: 앨범 제작 풀 패키지)",
+  "workItems": [  // ✅ 여러 작업이 감지되면 배열로 나눔, 단일 작업이면 null
+    {
+      "title": "작곡",
+      "description": "메인 테마/멜로디 작곡",
+      "estimatedPrice": 200000
+    },
+    {
+      "title": "편곡",
+      "description": "악기 구성 및 편곡 작업",
+      "estimatedPrice": 300000
+    }
+  ],
   "clientType": "individual 또는 small_business 또는 enterprise 또는 unknown 중 하나",
   "commercialUse": true 또는 false,
   "usageScope": ["personal", "commercial", "online", "print"] 중 해당하는 것들 배열로,
@@ -108,10 +127,12 @@ export class OpenRouterClient {
 }
 
 분석 기준:
-1. 상업적 사용 여부 명확히 판단
-2. 클라이언트 규모 추정
-3. 한국 시장 가격 기준
-4. 예술가 보호 관점`;
+1. 여러 작업 단계 감지 시 반드시 workItems 배열로 나눔
+2. 각 항목에 개별 예상 금액 제시
+3. 상업적 사용 여부 명확히 판단
+4. 클라이언트 규모 추정
+5. 한국 시장 가격 기준
+6. 예술가 보호 관점`;
 
     const response = await this.chat([
       { role: 'system', content: systemPrompt },

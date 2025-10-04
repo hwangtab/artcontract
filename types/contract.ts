@@ -98,6 +98,11 @@ export interface ContractFormData {
 // AI 분석 결과
 export interface WorkAnalysis {
   workType: string;
+  workItems?: Array<{  // ✅ 여러 작업으로 나누기 위한 배열
+    title: string;
+    description?: string;
+    estimatedPrice?: number;
+  }>;
   clientType: ClientType;
   commercialUse: boolean;
   usageScope: UsageScope[];

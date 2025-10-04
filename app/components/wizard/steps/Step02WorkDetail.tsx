@@ -225,19 +225,37 @@ export default function Step02WorkDetail({
 
       if (data.success && data.data) {
         const result: WorkAnalysis = data.data;
-        const newItem: WorkItemDraft = {
-          ...createEmptyItem(result.workType || 'AI 추천 작업'),
-          title: result.workType || 'AI 추천 작업',
-          description: descriptionInput.trim(),
-        };
-        const nextItems = [...items, newItem];
         setAnalysisResult(result);
         setShowErrorBanner(false);
-        syncItems(nextItems);
-        onUpdate({
-          aiAnalysis: result,
-          workDescription: descriptionInput.trim(),
-        });
+
+        // ✅ AI가 여러 작업으로 나눈 경우 workItems 배열 처리
+        if (result.workItems && result.workItems.length > 0) {
+          const newItems: WorkItemDraft[] = result.workItems.map((item) => ({
+            ...createEmptyItem(item.title),
+            title: item.title,
+            description: item.description || '',
+            unitPrice: item.estimatedPrice,
+          }));
+          const nextItems = [...items, ...newItems];
+          syncItems(nextItems);
+          onUpdate({
+            aiAnalysis: result,
+            workDescription: descriptionInput.trim(),
+          });
+        } else {
+          // 단일 작업 (기존 로직)
+          const newItem: WorkItemDraft = {
+            ...createEmptyItem(result.workType || 'AI 추천 작업'),
+            title: result.workType || 'AI 추천 작업',
+            description: descriptionInput.trim(),
+          };
+          const nextItems = [...items, newItem];
+          syncItems(nextItems);
+          onUpdate({
+            aiAnalysis: result,
+            workDescription: descriptionInput.trim(),
+          });
+        }
         // ✅ 입력창 초기화 제거 - useEffect가 workDescription prop 변경 시 동기화
       } else {
         setErrorMessage('AI 분석에 실패했어요. 네트워크 상태를 확인하고 다시 시도해주세요.');
