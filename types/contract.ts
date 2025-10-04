@@ -101,6 +101,7 @@ export interface WorkAnalysis {
   workItems?: Array<{  // ✅ 여러 작업으로 나누기 위한 배열
     title: string;
     description?: string;
+    deliverables?: string;  // ✅ 납품물 형식 (예: "WAV, MP3")
     estimatedPrice?: number;
     quantity?: number;  // ✅ 수량 (예: 영상 5개)
   }>;

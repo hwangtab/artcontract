@@ -90,10 +90,16 @@ export class OpenRouterClient {
 2. 클라이언트 이름이 있으면 추출 (예: "조희정에게" → clientName: "조희정", clientType: "individual")
 3. 금액이 명시되어 있으면 totalAmount에 정확히 반영 (예: "300만원" → 3000000)
 4. totalAmount가 있으면 workItems의 estimatedPrice 합계가 totalAmount와 일치하도록 배분
-5. 없는 정보는 추정하되, confidence를 낮춤
+5. **적극적 추론**: 없는 정보도 업계 표준을 바탕으로 적극 추정 (confidence 0.6~0.8로 유지)
 6. **중요**: 각 workItem에는 반드시 estimatedPrice를 포함해야 함 (없으면 suggestedPriceRange 기반 추정)
-7. **중요**: "N개", "N장", "N편" 등 수량 표현이 있으면 quantity 필드 필수 포함
+7. **중요**: "N개", "N장", "N편" 등 수량 표현이 있으면 quantity 필드 포함. **수량 미명시 시 기본값 1 설정**
 8. 금액이 "각각 X원"이면 각 항목의 estimatedPrice = X, totalAmount = X × 개수
+9. **중요**: deliverables(납품물) 필드 필수 포함 - 분야별 업계 표준 형식 추론
+   - 음악: "WAV (24bit/48kHz), MP3 (320kbps)"
+   - 디자인: "AI, PSD (원본 파일)", "JPG, PNG (최종 파일)"
+   - 영상: "MP4 (1080p), 프로젝트 파일 (Premiere/Final Cut)"
+   - 사진: "RAW, JPG (고해상도)"
+   - 글: "DOCX, PDF"
 
 **Few-shot 학습 예시:**
 
@@ -108,12 +114,12 @@ export class OpenRouterClient {
 {
   "workType": "음악 앨범 제작 풀 패키지",
   "workItems": [
-    {"title": "작곡", "description": "메인 테마/멜로디 작곡", "estimatedPrice": 500000},
-    {"title": "작사", "description": "가사 작성", "estimatedPrice": 500000},
-    {"title": "편곡", "description": "악기 구성 및 편곡", "estimatedPrice": 500000},
-    {"title": "녹음", "description": "보컬/악기 녹음", "estimatedPrice": 500000},
-    {"title": "믹싱", "description": "트랙 밸런스 조정", "estimatedPrice": 500000},
-    {"title": "마스터링", "description": "최종 음압 조정", "estimatedPrice": 500000}
+    {"title": "작곡", "description": "메인 테마/멜로디 작곡", "quantity": 1, "deliverables": "WAV (24bit/48kHz), MP3 (320kbps)", "estimatedPrice": 500000},
+    {"title": "작사", "description": "가사 작성", "quantity": 1, "deliverables": "DOCX, PDF", "estimatedPrice": 500000},
+    {"title": "편곡", "description": "악기 구성 및 편곡", "quantity": 1, "deliverables": "WAV (24bit/48kHz), 프로젝트 파일", "estimatedPrice": 500000},
+    {"title": "녹음", "description": "보컬/악기 녹음", "quantity": 1, "deliverables": "WAV (24bit/48kHz)", "estimatedPrice": 500000},
+    {"title": "믹싱", "description": "트랙 밸런스 조정", "quantity": 1, "deliverables": "WAV (24bit/48kHz), MP3 (320kbps)", "estimatedPrice": 500000},
+    {"title": "마스터링", "description": "최종 음압 조정", "quantity": 1, "deliverables": "WAV (24bit/48kHz), MP3 (320kbps)", "estimatedPrice": 500000}
   ],
   "clientName": "조희정",
   "clientType": "individual",
@@ -134,8 +140,8 @@ export class OpenRouterClient {
 {
   "workType": "브랜딩 디자인 패키지",
   "workItems": [
-    {"title": "로고 디자인", "estimatedPrice": 500000},
-    {"title": "명함 디자인", "estimatedPrice": 500000}
+    {"title": "로고 디자인", "quantity": 1, "deliverables": "AI, PSD (원본 파일), JPG, PNG (최종 파일)", "estimatedPrice": 500000},
+    {"title": "명함 디자인", "quantity": 1, "deliverables": "AI, PSD (원본 파일), PDF (인쇄용)", "estimatedPrice": 500000}
   ],
   "clientName": "ABC회사",
   "clientType": "small_business",
@@ -153,7 +159,7 @@ export class OpenRouterClient {
 {
   "workType": "유튜브 영상 편집",
   "workItems": [
-    {"title": "영상 편집", "description": "유튜브 영상 편집", "quantity": 5, "estimatedPrice": 150000}
+    {"title": "영상 편집", "description": "유튜브 영상 편집", "quantity": 5, "deliverables": "MP4 (1080p), 썸네일 JPG", "estimatedPrice": 150000}
   ],
   "clientType": "unknown",
   "suggestedPriceRange": {"min": 500000, "max": 1000000, "currency": "KRW"},
@@ -175,7 +181,7 @@ export class OpenRouterClient {
 {
   "workType": "SNS 광고 이미지 제작",
   "workItems": [
-    {"title": "인스타그램 광고 이미지", "description": "SNS 마케팅용 이미지", "quantity": 10, "estimatedPrice": 50000}
+    {"title": "인스타그램 광고 이미지", "description": "SNS 마케팅용 이미지", "quantity": 10, "deliverables": "JPG, PNG (1080x1080, 1080x1350)", "estimatedPrice": 50000}
   ],
   "clientName": "김민수",
   "clientType": "small_business",
@@ -199,9 +205,9 @@ export class OpenRouterClient {
 {
   "workType": "음악 제작 3종 패키지",
   "workItems": [
-    {"title": "작곡", "description": "메인 테마 작곡", "estimatedPrice": 300000},
-    {"title": "편곡", "description": "악기 구성 및 편곡", "estimatedPrice": 300000},
-    {"title": "믹싱", "description": "트랙 밸런스 조정", "estimatedPrice": 300000}
+    {"title": "작곡", "description": "메인 테마 작곡", "quantity": 1, "deliverables": "WAV (24bit/48kHz), MP3 (320kbps), 악보 PDF", "estimatedPrice": 300000},
+    {"title": "편곡", "description": "악기 구성 및 편곡", "quantity": 1, "deliverables": "WAV (24bit/48kHz), 프로젝트 파일", "estimatedPrice": 300000},
+    {"title": "믹싱", "description": "트랙 밸런스 조정", "quantity": 1, "deliverables": "WAV (24bit/48kHz), MP3 (320kbps)", "estimatedPrice": 300000}
   ],
   "clientType": "unknown",
   "totalAmount": 900000,
@@ -212,6 +218,32 @@ export class OpenRouterClient {
   "estimatedDays": 14,
   "additionalClauses": ["작업 기간이 짧으니 러시 요금을 고려하세요"],
   "confidence": 0.9
+}
+
+예시 6:
+입력: "음악 앨범 제작"
+분석:
+- 작업: 음악 앨범 제작 (구체적 정보 없음)
+- **적극적 추론**: 앨범 제작 = 통상 1곡, 작곡/편곡/녹음/믹싱/마스터링 포함
+- 수량: 명시 안 됨 → 기본값 1
+- 금액: 명시 안 됨 → suggestedPriceRange 기반 추정
+- 납품물: 음악 분야 표준 형식 추론
+출력:
+{
+  "workType": "음악 앨범 제작",
+  "workItems": [
+    {"title": "음악 앨범 제작", "description": "작곡/편곡/녹음/믹싱/마스터링 포함", "quantity": 1, "deliverables": "WAV (24bit/48kHz), MP3 (320kbps), 프로젝트 파일", "estimatedPrice": 1500000}
+  ],
+  "clientType": "unknown",
+  "totalAmount": 1500000,
+  "suggestedPriceRange": {"min": 1000000, "max": 2500000, "currency": "KRW"},
+  "commercialUse": false,
+  "usageScope": ["personal"],
+  "complexity": "complex",
+  "riskFactors": ["금액 미명시", "작업 범위 불명확"],
+  "estimatedDays": 30,
+  "additionalClauses": ["정확한 작업 범위와 금액을 클라이언트와 확정하세요"],
+  "confidence": 0.6
 }
 
 이제 다음 입력을 분석하세요:

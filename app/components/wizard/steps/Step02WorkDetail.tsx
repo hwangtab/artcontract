@@ -229,6 +229,7 @@ export default function Step02WorkDetail({
             ...createEmptyItem(item.title),
             title: item.title,
             description: item.description || '',
+            deliverables: item.deliverables || '',
             unitPrice: item.estimatedPrice,
             quantity: item.quantity,
           }));
