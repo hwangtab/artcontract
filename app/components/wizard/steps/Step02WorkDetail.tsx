@@ -230,21 +230,28 @@ export default function Step02WorkDetail({
   // ✅ 함수 분리 2: WorkItems 생성
   const populateWorkItems = (result: WorkAnalysis) => {
     if (result.workItems && result.workItems.length > 0) {
+      // 여러 작업 항목이 있는 경우
       const newItems: WorkItemDraft[] = result.workItems.map((item) => ({
         ...createEmptyItem(item.title),
         title: item.title,
         description: item.description || '',
         deliverables: item.deliverables || '',
         unitPrice: item.estimatedPrice,
-        quantity: item.quantity,
+        quantity: item.quantity || 1, // ✅ 기본값 1
       }));
       const nextItems = [...items, ...newItems];
       syncItems(nextItems);
     } else {
+      // 단일 작업인 경우 - AI 추론 데이터 모두 반영
+      const estimatedPrice = result.totalAmount || result.suggestedPriceRange?.min || undefined;
+
       const newItem: WorkItemDraft = {
         ...createEmptyItem(result.workType || 'AI 추천 작업'),
         title: result.workType || 'AI 추천 작업',
         description: descriptionInput.trim(),
+        deliverables: '', // ✅ 단일 작업은 workItems 배열이 없어 deliverables 정보 없음
+        unitPrice: estimatedPrice,
+        quantity: 1, // ✅ 단일 작업은 기본 수량 1
       };
       const nextItems = [...items, newItem];
       syncItems(nextItems);

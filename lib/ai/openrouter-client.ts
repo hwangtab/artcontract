@@ -91,12 +91,17 @@ export class OpenRouterClient {
 3. 금액이 명시되어 있으면 totalAmount에 정확히 반영 (예: "300만원" → 3000000)
 4. totalAmount가 있으면 workItems의 estimatedPrice 합계가 totalAmount와 일치하도록 배분
 5. **적극적 추론**: 없는 정보도 업계 표준을 바탕으로 적극 추정 (confidence 0.6~0.8로 유지)
-6. **중요**: 각 workItem에는 반드시 estimatedPrice를 포함해야 함 (없으면 suggestedPriceRange 기반 추정)
-7. **중요**: "N개", "N장", "N편" 등 수량 표현이 있으면 quantity 필드 포함. **수량 미명시 시 기본값 1 설정**
+6. **필수**: 모든 workItem에는 반드시 다음 필드 포함:
+   - **title**: 작업 제목 (필수)
+   - **description**: 작업 설명 (필수, 없으면 title 반복)
+   - **quantity**: 수량 (필수, 명시 안 됨 → 1)
+   - **deliverables**: 납품물 (필수, 분야별 표준 형식)
+   - **estimatedPrice**: 예상 금액 (필수, suggestedPriceRange 기반 추정)
+7. **중요**: "N개", "N장", "N편" 등 수량 표현이 있으면 해당 숫자 사용, 없으면 **반드시 1로 설정**
 8. 금액이 "각각 X원"이면 각 항목의 estimatedPrice = X, totalAmount = X × 개수
-9. **중요**: deliverables(납품물) 필드 필수 포함 - 분야별 업계 표준 형식 추론
+9. **필수**: deliverables(납품물) 필드는 **절대 빈 문자열 금지**, 분야별 업계 표준 형식 반드시 포함:
    - 음악: "WAV (24bit/48kHz), MP3 (320kbps)"
-   - 디자인: "AI, PSD (원본 파일)", "JPG, PNG (최종 파일)"
+   - 디자인: "AI, PSD (원본 파일), JPG, PNG (최종 파일)"
    - 영상: "MP4 (1080p), 프로젝트 파일 (Premiere/Final Cut)"
    - 사진: "RAW, JPG (고해상도)"
    - 글: "DOCX, PDF"
