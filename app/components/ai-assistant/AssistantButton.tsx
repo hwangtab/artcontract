@@ -20,7 +20,7 @@ export default function AssistantButton({
       className={`
         fixed
         bottom-20 md:bottom-6
-        right-4 md:right-6
+        left-4 md:left-6
         w-16 h-16 md:w-14 md:h-14
         rounded-full
         shadow-lg

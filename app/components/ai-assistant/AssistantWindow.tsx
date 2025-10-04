@@ -40,7 +40,7 @@ export default function AssistantWindow({
   };
 
   return (
-    <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200">
+    <div className="fixed bottom-24 left-6 w-96 h-[500px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200">
       {/* Header */}
       <div className="bg-primary-500 text-white p-4 rounded-t-2xl">
         <h3 className="font-semibold flex items-center gap-2">
