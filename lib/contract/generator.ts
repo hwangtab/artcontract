@@ -101,7 +101,20 @@ function generateStandardContract(formData: EnhancedContractFormData): string {
 
 // 제1조: 계약의 목적
 function generateArticle1_Purpose(formData: EnhancedContractFormData): string {
-  const workName = formData.workType || formData.workDescription || '[작업명]';
+  // 여러 작업 항목이 있으면 모두 나열
+  let workName = '[작업명]';
+
+  if (formData.workItems && formData.workItems.length > 1) {
+    // 여러 작업: "작곡, 편곡, 녹음, 믹싱, 마스터링"
+    workName = formData.workItems.map(item => item.title).join(', ');
+  } else if (formData.workItems && formData.workItems.length === 1) {
+    // 단일 작업
+    workName = formData.workItems[0].title;
+  } else {
+    // fallback
+    workName = formData.workType || formData.workDescription || '[작업명]';
+  }
+
   return `## 제1조 (계약의 목적)\n\n본 계약은 **${workName}**의 창작에 관한 당사자 간의 권리와 의무를 정함을 목적으로 한다.\n\n---\n\n`;
 }
 
@@ -366,6 +379,47 @@ function generateSignatureSection(formData: EnhancedContractFormData | ContractF
   return content;
 }
 
+/**
+ * 구어체 설명을 계약서용 격식체로 변환
+ */
+function formalizeDescription(text: string): string {
+  if (!text) return text;
+
+  let result = text.trim();
+
+  // 1. 구어체 종결어미 제거/변경
+  result = result.replace(/해요\.?$/g, '함.');
+  result = result.replace(/했어요\.?$/g, '함.');
+  result = result.replace(/할게요\.?$/g, '함.');
+  result = result.replace(/됩니다\.?$/g, '됨.');
+  result = result.replace(/입니다\.?$/g, '임.');
+  result = result.replace(/합니다\.?$/g, '함.');
+
+  // 2. 문장 중간의 구어체 표현
+  result = result.replace(/해요\s/g, '하며 ');
+  result = result.replace(/했어요\s/g, '하였으며 ');
+  result = result.replace(/할게요\s/g, '하며 ');
+  result = result.replace(/됩니다\s/g, '되며 ');
+  result = result.replace(/입니다\s/g, '이며 ');
+
+  // 3. 불필요한 구어체 조사
+  result = result.replace(/\s*~\s*/g, ' ');
+  result = result.replace(/요\s/g, ' ');
+
+  // 4. 이모지 제거
+  result = result.replace(/[\u{1F300}-\u{1F9FF}]/gu, '');
+
+  // 5. 여러 공백을 하나로
+  result = result.replace(/\s+/g, ' ');
+
+  // 6. 마침표 정리
+  if (!result.endsWith('.') && !result.endsWith('함') && !result.endsWith('됨') && !result.endsWith('임')) {
+    result += '.';
+  }
+
+  return result.trim();
+}
+
 function getFieldName(field?: string): string {
   const map: any = {'design': '디자인/일러스트', 'photography': '사진/영상', 'writing': '글쓰기', 'music': '음악', 'video': '영상', 'voice': '성우/더빙', 'translation': '번역', 'other': '기타 창작'};
   return map[field || 'other'] || '창작';
@@ -380,12 +434,15 @@ function formatWorkItemsSummary(formData: ContractFormData): string {
   const { workItems, workDescription } = formData;
 
   if (!workItems || workItems.length === 0) {
-    return workDescription || '[상세 설명 미정]';
+    // workDescription을 격식체로 변환
+    const formalDesc = workDescription ? formalizeDescription(workDescription) : '[상세 설명 미정]';
+    return formalDesc;
   }
 
   const lines: string[] = [];
   if (workDescription) {
-    lines.push(workDescription, '');
+    // 전체 작업 설명도 격식체로 변환
+    lines.push(formalizeDescription(workDescription), '');
   }
 
   workItems.forEach((item, index) => {
@@ -395,7 +452,13 @@ function formatWorkItemsSummary(formData: ContractFormData): string {
         : undefined);
 
     const itemLines = [`${index + 1}. ${item.title || '작업 항목'}`];
-    if (item.description) itemLines.push(`   - 내용: ${item.description}`);
+
+    // description을 격식체로 변환
+    if (item.description) {
+      const formalDesc = formalizeDescription(item.description);
+      itemLines.push(`   - 내용: ${formalDesc}`);
+    }
+
     if (item.deliverables) itemLines.push(`   - 납품물: ${item.deliverables}`);
     if (item.quantity !== undefined) itemLines.push(`   - 수량: ${item.quantity}`);
     if (item.unitPrice !== undefined) itemLines.push(`   - 단가: ${formatCurrency(item.unitPrice)}`);
