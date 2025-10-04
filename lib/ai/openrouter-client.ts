@@ -83,56 +83,88 @@ export class OpenRouterClient {
   }
 
   async analyzeWork(field: string, userInput: string): Promise<any> {
-    const systemPrompt = `당신은 예술가의 작업을 정확히 이해하고 분류하는 전문가입니다.
+    const systemPrompt = `당신은 예술가의 작업 의뢰를 정확히 분석하는 전문가입니다.
 
+**핵심 규칙:**
+1. 쉼표(,)나 "와/과"로 나열된 작업들을 반드시 개별 workItems로 분리
+2. 클라이언트 이름이 있으면 추출 (예: "조희정에게" → clientName: "조희정", clientType: "individual")
+3. 금액이 명시되어 있으면 totalAmount에 정확히 반영 (예: "300만원" → 3000000)
+4. totalAmount가 있으면 workItems의 estimatedPrice 합계가 totalAmount와 일치하도록 배분
+5. 없는 정보는 추정하되, confidence를 낮춤
+
+**Few-shot 학습 예시:**
+
+예시 1:
+입력: "조희정이라는 아티스트에게 작곡, 작사, 편곡, 녹음, 믹싱, 마스터링을 하고 300만원을 받아요"
+분석:
+- 작업: 작곡, 작사, 편곡, 녹음, 믹싱, 마스터링 (6개)
+- 클라이언트: "조희정" (개인 이름 → individual)
+- 총 금액: 300만원 = 3,000,000원
+- 각 작업 금액: 3,000,000 ÷ 6 = 500,000원
+출력:
+{
+  "workType": "음악 앨범 제작 풀 패키지",
+  "workItems": [
+    {"title": "작곡", "description": "메인 테마/멜로디 작곡", "estimatedPrice": 500000},
+    {"title": "작사", "description": "가사 작성", "estimatedPrice": 500000},
+    {"title": "편곡", "description": "악기 구성 및 편곡", "estimatedPrice": 500000},
+    {"title": "녹음", "description": "보컬/악기 녹음", "estimatedPrice": 500000},
+    {"title": "믹싱", "description": "트랙 밸런스 조정", "estimatedPrice": 500000},
+    {"title": "마스터링", "description": "최종 음압 조정", "estimatedPrice": 500000}
+  ],
+  "clientName": "조희정",
+  "clientType": "individual",
+  "totalAmount": 3000000,
+  "suggestedPriceRange": {"min": 3000000, "max": 3000000, "currency": "KRW"},
+  "commercialUse": false,
+  "usageScope": ["personal"],
+  "complexity": "complex",
+  "riskFactors": [],
+  "estimatedDays": 30,
+  "additionalClauses": [],
+  "confidence": 0.95
+}
+
+예시 2:
+입력: "ABC회사에 로고 디자인과 명함 디자인 각각 50만원씩"
+출력:
+{
+  "workType": "브랜딩 디자인 패키지",
+  "workItems": [
+    {"title": "로고 디자인", "estimatedPrice": 500000},
+    {"title": "명함 디자인", "estimatedPrice": 500000}
+  ],
+  "clientName": "ABC회사",
+  "clientType": "small_business",
+  "totalAmount": 1000000,
+  "suggestedPriceRange": {"min": 1000000, "max": 1000000, "currency": "KRW"},
+  "commercialUse": true,
+  "usageScope": ["commercial", "print"],
+  "complexity": "medium",
+  "confidence": 0.9
+}
+
+예시 3:
+입력: "유튜브 영상 편집 5개"
+출력:
+{
+  "workType": "유튜브 영상 편집",
+  "workItems": [
+    {"title": "영상 편집", "description": "유튜브 영상 편집", "quantity": 5, "estimatedPrice": 150000}
+  ],
+  "clientType": "unknown",
+  "suggestedPriceRange": {"min": 500000, "max": 1000000, "currency": "KRW"},
+  "commercialUse": true,
+  "usageScope": ["online"],
+  "complexity": "medium",
+  "confidence": 0.7
+}
+
+이제 다음 입력을 분석하세요:
 입력: "${userInput}"
 분야: "${field}"
 
-**중요: 입력에서 여러 작업 단계를 감지하면 반드시 workItems 배열로 나눠주세요!**
-
-예시:
-- "작곡, 편곡, 믹싱" → workItems 3개
-- "로고 디자인과 명함 디자인" → workItems 2개
-- "단순 로고 디자인" → workItems null (단일 작업)
-
-다음 JSON 형식으로 정확히 분석하세요 (JSON만 출력, 주석 없이):
-
-{
-  "workType": "전체 작업명 (예: 앨범 제작 풀 패키지)",
-  "workItems": [  // ✅ 여러 작업이 감지되면 배열로 나눔, 단일 작업이면 null
-    {
-      "title": "작곡",
-      "description": "메인 테마/멜로디 작곡",
-      "estimatedPrice": 200000
-    },
-    {
-      "title": "편곡",
-      "description": "악기 구성 및 편곡 작업",
-      "estimatedPrice": 300000
-    }
-  ],
-  "clientType": "individual 또는 small_business 또는 enterprise 또는 unknown 중 하나",
-  "commercialUse": true 또는 false,
-  "usageScope": ["personal", "commercial", "online", "print"] 중 해당하는 것들 배열로,
-  "complexity": "simple 또는 medium 또는 complex 중 하나",
-  "riskFactors": ["위험 요소 1", "위험 요소 2"],
-  "suggestedPriceRange": {
-    "min": 100000,
-    "max": 500000,
-    "currency": "KRW"
-  },
-  "estimatedDays": 7,
-  "additionalClauses": ["추가 조항 1", "추가 조항 2"],
-  "confidence": 0.8
-}
-
-분석 기준:
-1. 여러 작업 단계 감지 시 반드시 workItems 배열로 나눔
-2. 각 항목에 개별 예상 금액 제시
-3. 상업적 사용 여부 명확히 판단
-4. 클라이언트 규모 추정
-5. 한국 시장 가격 기준
-6. 예술가 보호 관점`;
+JSON만 출력하세요 (주석 없이):`;
 
     const response = await this.chat([
       { role: 'system', content: systemPrompt },

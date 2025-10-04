@@ -102,8 +102,11 @@ export interface WorkAnalysis {
     title: string;
     description?: string;
     estimatedPrice?: number;
+    quantity?: number;  // ✅ 수량 (예: 영상 5개)
   }>;
+  clientName?: string;  // ✅ AI가 추출한 클라이언트 이름
   clientType: ClientType;
+  totalAmount?: number;  // ✅ 사용자가 명시한 총 금액
   commercialUse: boolean;
   usageScope: UsageScope[];
   complexity: Complexity;

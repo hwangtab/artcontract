@@ -6,7 +6,7 @@ import Input from '../../shared/Input';
 import LoadingSpinner from '../../shared/LoadingSpinner';
 import ErrorBanner from '../../shared/ErrorBanner';
 import ConfirmModal from '../../shared/ConfirmModal';
-import { ArtField, WorkAnalysis, WorkItem } from '@/types/contract';
+import { ArtField, WorkAnalysis, WorkItem, EnhancedContractFormData } from '@/types/contract';
 import { Sparkles, Check, AlertTriangle, Plus, Trash2 } from 'lucide-react';
 
 interface Step02Props {
@@ -15,12 +15,7 @@ interface Step02Props {
   workDescription?: string;
   workItems?: WorkItem[];
   aiAnalysis?: WorkAnalysis | null;
-  onUpdate: (data: {
-    workType?: string;
-    workDescription?: string;
-    aiAnalysis?: WorkAnalysis | null;
-    workItems?: WorkItem[];
-  }) => void;
+  onUpdate: (data: Partial<EnhancedContractFormData>) => void;
 }
 
 interface WorkItemDraft extends WorkItem {
@@ -235,13 +230,36 @@ export default function Step02WorkDetail({
             title: item.title,
             description: item.description || '',
             unitPrice: item.estimatedPrice,
+            quantity: item.quantity,
           }));
           const nextItems = [...items, ...newItems];
           syncItems(nextItems);
-          onUpdate({
+
+          // ✅ AI가 추출한 정보를 다음 단계에 자동 채우기
+          const updates: any = {
             aiAnalysis: result,
             workDescription: descriptionInput.trim(),
-          });
+          };
+
+          // 클라이언트 이름 자동 입력 (Step 3)
+          if (result.clientName) {
+            updates.clientName = result.clientName;
+          }
+
+          // 클라이언트 타입 자동 입력 (Step 3)
+          if (result.clientType && result.clientType !== 'unknown') {
+            updates.clientType = result.clientType;
+          }
+
+          // 총 금액 자동 입력 (Step 5)
+          if (result.totalAmount) {
+            updates.payment = {
+              currency: 'KRW',
+              amount: result.totalAmount,
+            };
+          }
+
+          onUpdate(updates);
         } else {
           // 단일 작업 (기존 로직)
           const newItem: WorkItemDraft = {
@@ -251,10 +269,29 @@ export default function Step02WorkDetail({
           };
           const nextItems = [...items, newItem];
           syncItems(nextItems);
-          onUpdate({
+
+          // ✅ 단일 작업도 자동 채우기 적용
+          const updates: any = {
             aiAnalysis: result,
             workDescription: descriptionInput.trim(),
-          });
+          };
+
+          if (result.clientName) {
+            updates.clientName = result.clientName;
+          }
+
+          if (result.clientType && result.clientType !== 'unknown') {
+            updates.clientType = result.clientType;
+          }
+
+          if (result.totalAmount) {
+            updates.payment = {
+              currency: 'KRW',
+              amount: result.totalAmount,
+            };
+          }
+
+          onUpdate(updates);
         }
         // ✅ 입력창 초기화 제거 - useEffect가 workDescription prop 변경 시 동기화
       } else {
