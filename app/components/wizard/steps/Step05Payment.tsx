@@ -26,6 +26,7 @@ export default function Step05Payment({
 }: Step05Props) {
   const [amountInput, setAmountInput] = useState(amount ? amount.toString() : '');
   const [depositInput, setDepositInput] = useState(deposit ? deposit.toString() : '');
+  const [lastCoachedBand, setLastCoachedBand] = useState<string | null>(null);
 
   useEffect(() => {
     setAmountInput(amount ? amount.toString() : '');
@@ -78,21 +79,28 @@ export default function Step05Payment({
     if (Number.isNaN(parsedAmount) || parsedAmount <= 0) return;
 
     let coachMessage = '';
+    let band: string | null = null;
 
     if (parsedAmount < 50000) {
       coachMessage = `💡 ${formatCurrency(parsedAmount)}은 조금 낮은 금액이에요. 시간과 노력을 고려하면 최소 5만원 이상 받으시는 걸 추천해요.`;
+      band = '<50k';
     } else if (parsedAmount < 100000) {
       coachMessage = `👍 ${formatCurrency(parsedAmount)}이시군요! 적정한 금액이에요. 작업 시작 전에 일부를 선금으로 받으면 더 안전해요.`;
+      band = '50-100k';
     } else if (parsedAmount < 1000000) {
       const recommendedDeposit = Math.floor(parsedAmount * 0.3);
       coachMessage = `💼 ${formatCurrency(parsedAmount)}! 계약금 ${formatCurrency(recommendedDeposit)}(30%)를 먼저 받으시는 걸 추천해요. 계약 이행을 보증하는 역할을 해요.`;
+      band = '100k-1m';
     } else {
       coachMessage = `🏆 ${formatCurrency(parsedAmount)}! 고액 계약이에요. 법률 전문가 검토를 받는 걸 강력히 추천해요. 한국저작권위원회(02-2669-0100)에 무료 상담을 신청하세요!`;
+      band = '>=1m';
     }
 
-    if (coachMessage) {
-      onAICoach(coachMessage);
-    }
+    if (!coachMessage) return;
+    if (band && band === lastCoachedBand) return;
+
+    onAICoach(coachMessage);
+    setLastCoachedBand(band);
   };
 
   const handleApplyItemsTotal = () => {
