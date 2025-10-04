@@ -91,6 +91,9 @@ export class OpenRouterClient {
 3. 금액이 명시되어 있으면 totalAmount에 정확히 반영 (예: "300만원" → 3000000)
 4. totalAmount가 있으면 workItems의 estimatedPrice 합계가 totalAmount와 일치하도록 배분
 5. 없는 정보는 추정하되, confidence를 낮춤
+6. **중요**: 각 workItem에는 반드시 estimatedPrice를 포함해야 함 (없으면 suggestedPriceRange 기반 추정)
+7. **중요**: "N개", "N장", "N편" 등 수량 표현이 있으면 quantity 필드 필수 포함
+8. 금액이 "각각 X원"이면 각 항목의 estimatedPrice = X, totalAmount = X × 개수
 
 **Few-shot 학습 예시:**
 
@@ -158,6 +161,57 @@ export class OpenRouterClient {
   "usageScope": ["online"],
   "complexity": "medium",
   "confidence": 0.7
+}
+
+예시 4:
+입력: "김민수 대표님께 인스타그램 광고 이미지 10장, 각각 5만원씩입니다"
+분석:
+- 작업: 인스타그램 광고 이미지 (1종류)
+- 수량: 10장
+- 각 이미지 가격: 5만원 = 50,000원
+- 총 금액: 50,000 × 10 = 500,000원
+- 클라이언트: "김민수" (대표님 → small_business)
+출력:
+{
+  "workType": "SNS 광고 이미지 제작",
+  "workItems": [
+    {"title": "인스타그램 광고 이미지", "description": "SNS 마케팅용 이미지", "quantity": 10, "estimatedPrice": 50000}
+  ],
+  "clientName": "김민수",
+  "clientType": "small_business",
+  "totalAmount": 500000,
+  "suggestedPriceRange": {"min": 500000, "max": 500000, "currency": "KRW"},
+  "commercialUse": true,
+  "usageScope": ["online", "commercial"],
+  "complexity": "simple",
+  "estimatedDays": 7,
+  "confidence": 0.95
+}
+
+예시 5:
+입력: "작곡, 편곡, 믹싱을 각각 30만원씩, 2주 안에 완성"
+분석:
+- 작업: 작곡, 편곡, 믹싱 (3개)
+- 각 작업 가격: 30만원 = 300,000원
+- 총 금액: 300,000 × 3 = 900,000원
+- 마감: 2주 = 14일
+출력:
+{
+  "workType": "음악 제작 3종 패키지",
+  "workItems": [
+    {"title": "작곡", "description": "메인 테마 작곡", "estimatedPrice": 300000},
+    {"title": "편곡", "description": "악기 구성 및 편곡", "estimatedPrice": 300000},
+    {"title": "믹싱", "description": "트랙 밸런스 조정", "estimatedPrice": 300000}
+  ],
+  "clientType": "unknown",
+  "totalAmount": 900000,
+  "suggestedPriceRange": {"min": 900000, "max": 900000, "currency": "KRW"},
+  "commercialUse": false,
+  "usageScope": ["personal"],
+  "complexity": "complex",
+  "estimatedDays": 14,
+  "additionalClauses": ["작업 기간이 짧으니 러시 요금을 고려하세요"],
+  "confidence": 0.9
 }
 
 이제 다음 입력을 분석하세요:

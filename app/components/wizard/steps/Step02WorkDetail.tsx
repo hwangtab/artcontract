@@ -259,6 +259,29 @@ export default function Step02WorkDetail({
             };
           }
 
+          // 일정 자동 입력 (Step 4)
+          if (result.estimatedDays) {
+            const today = new Date();
+            const deadline = new Date(today);
+            deadline.setDate(deadline.getDate() + result.estimatedDays);
+
+            updates.timeline = {
+              startDate: today,
+              deadline: deadline,
+              estimatedDays: result.estimatedDays,
+            };
+          }
+
+          // 사용 범위 자동 입력 (Step 7)
+          if (result.usageScope && result.usageScope.length > 0) {
+            updates.usageScope = result.usageScope;
+          }
+
+          // 상업적 사용 자동 입력 (Step 7)
+          if (result.commercialUse !== undefined) {
+            updates.commercialUse = result.commercialUse;
+          }
+
           onUpdate(updates);
         } else {
           // 단일 작업 (기존 로직)
@@ -289,6 +312,29 @@ export default function Step02WorkDetail({
               currency: 'KRW',
               amount: result.totalAmount,
             };
+          }
+
+          // 일정 자동 입력 (Step 4)
+          if (result.estimatedDays) {
+            const today = new Date();
+            const deadline = new Date(today);
+            deadline.setDate(deadline.getDate() + result.estimatedDays);
+
+            updates.timeline = {
+              startDate: today,
+              deadline: deadline,
+              estimatedDays: result.estimatedDays,
+            };
+          }
+
+          // 사용 범위 자동 입력 (Step 7)
+          if (result.usageScope && result.usageScope.length > 0) {
+            updates.usageScope = result.usageScope;
+          }
+
+          // 상업적 사용 자동 입력 (Step 7)
+          if (result.commercialUse !== undefined) {
+            updates.commercialUse = result.commercialUse;
           }
 
           onUpdate(updates);
@@ -379,7 +425,7 @@ export default function Step02WorkDetail({
               ) : (
                 <>
                   <Sparkles size={18} />
-                  <span className="ml-2">🤖 AI로 작업 나누기</span>
+                  <span className="ml-2">🤖 AI로 작업 분석하기</span>
                 </>
               )}
             </Button>
