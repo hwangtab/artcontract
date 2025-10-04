@@ -65,7 +65,7 @@ export async function analyzeWork(
     const validationResult = WorkAnalysisSchema.safeParse(analysis);
 
     if (!validationResult.success) {
-      console.error('AI response validation failed:', validationResult.error.errors);
+      console.error('AI response validation failed:', validationResult.error);
       return createFallbackAnalysis(userInput, 'Schema validation failed');
     }
 
