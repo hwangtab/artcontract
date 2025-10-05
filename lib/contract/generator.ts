@@ -74,18 +74,12 @@ function generateStandardContract(formData: EnhancedContractFormData): string {
     content += generateArticle9_Modifications(formData);
   }
 
-  // 필수 조항 계속
-  if (formData.terminationTerms) {
-    content += generateArticle10_Termination(formData);
-  }
-  if (formData.protectionClauses?.confidentiality) {
-    content += generateArticle11_Confidentiality(formData);
-  }
-  if (formData.disputeResolution) {
-    content += generateArticle12_DisputeResolution(formData);
-  }
-
+  // ⭐ 법적 필수 조항 (항상 포함)
+  content += generateArticle10_Termination(formData);
+  content += generateArticle11_Confidentiality(formData);
+  content += generateArticle12_DisputeResolution(formData);
   content += generateArticle13_Effectiveness(formData);
+  content += generateArticle14_PreparingLaw(formData);
 
   // 서명란
   content += generateSignatureSection(formData);
@@ -349,21 +343,36 @@ function generateArticle12_DisputeResolution(formData: EnhancedContractFormData)
     content += `   - 분쟁 발생 시 당사자는 신의성실 원칙에 따라 협의한다.\n   - 협의 기간: 통지 후 30일\n\n`;
   }
 
-  content += `   **2단계: 조정**\n   - 협의가 실패한 경우 다음 기관에 조정을 신청한다:\n`;
+  content += `   **2단계: 조정 (권장)**\n   - 협의가 실패한 경우 소송 전 조정을 신청할 수 있다:\n`;
   if (dispute && dispute.mediationOrganizations.length > 0) {
     dispute.mediationOrganizations.forEach(org => { content += `     • ${org}\n`; });
   } else {
-    content += `     • 한국저작권위원회 (www.copyright.or.kr)\n     • 콘텐츠분쟁조정위원회\n     • 예술인 신문고 (1899-2202)\n`;
+    content += `     • **한국저작권위원회** (www.copyright.or.kr, ☎ 1800-5455)\n       - 조정 신청: 무료\n       - 조정 성립 시 재판상 화해와 동일한 효력\n     • 콘텐츠분쟁조정위원회\n     • 예술인 신문고 (☎ 1899-2202)\n`;
   }
 
-  content += `\n   **3단계: 소송**\n   - 조정이 실패한 경우 법원에 제소할 수 있다.\n`;
-  content += dispute ? `   - 관할 법원: ${dispute.jurisdiction}\n\n` : `   - 관할 법원: ${formData.clientType === 'enterprise' ? '서울중앙지방법원' : '피고 주소지 관할 법원'}\n\n`;
-  content += `② 조정이 성립한 경우 재판상 화해와 동일한 효력을 가진다.\n\n---\n\n`;
+  content += `\n   **3단계: 소송**\n   - 조정이 실패하거나 조정을 원하지 않는 경우 법원에 제소할 수 있다.\n`;
+
+  // 관할법원 명시 (문체부 표준 준수)
+  let jurisdiction = '';
+  if (dispute && dispute.jurisdiction) {
+    jurisdiction = dispute.jurisdiction;
+  } else {
+    // 기본값: 피고 주소지 또는 계약 이행지 관할 법원
+    jurisdiction = '피고의 주소지 또는 계약 이행지를 관할하는 지방법원';
+  }
+  content += `   - **관할 법원**: ${jurisdiction}\n\n`;
+
+  content += `② 조정이 성립한 경우 민사소송법 제220조에 따라 재판상 화해와 동일한 효력을 가진다.\n\n`;
+  content += `③ 상호 합의 하에 특정 법원을 제1심 관할법원으로 정할 수 있다.\n\n---\n\n`;
   return content;
 }
 
 function generateArticle13_Effectiveness(formData: EnhancedContractFormData): string {
   return `## 제13조 (효력 발생)\n\n본 계약은 계약서 2부를 작성하여 당사자가 서명 날인한 후 각 1부씩 보관하며, 서명 날인한 날부터 효력이 발생한다.\n\n---\n\n`;
+}
+
+function generateArticle14_PreparingLaw(formData: EnhancedContractFormData): string {
+  return `## 제14조 (준거법 및 해석)\n\n① 본 계약은 대한민국 법률에 따라 해석되고 집행된다.\n\n② 본 계약에 명시되지 않은 사항은 다음 순서로 해석한다:\n   1. 저작권법\n   2. 민법\n   3. 상관례 및 신의성실 원칙\n\n③ 계약 내용 중 일부가 무효가 되더라도, 나머지 조항은 유효하게 유지된다.\n\n---\n\n`;
 }
 
 function generateSignatureSection(formData: EnhancedContractFormData | ContractFormData): string {
