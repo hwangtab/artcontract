@@ -99,7 +99,7 @@ export default function Step02WorkDetail({
   const [pendingDuplicateItem, setPendingDuplicateItem] = useState<WorkItemDraft | null>(null);
   const [duplicateItemTitle, setDuplicateItemTitle] = useState('');
 
-  // ✅ Step 1에서 선택한 작업들을 자동 로드
+  // ✅ Step 1에서 선택한 작업들을 자동 로드 + 작업 설명 자동 생성
   useEffect(() => {
     if (!initialLoadDone && selectedSubFields && selectedSubFields.length > 0) {
       const autoLoadedItems = selectedSubFields.map((subFieldTitle) =>
@@ -107,6 +107,10 @@ export default function Step02WorkDetail({
       );
       setItems(autoLoadedItems);
       setInitialLoadDone(true);
+
+      // ✅ 작업 설명 자동 생성
+      const autoDescription = `${selectedSubFields.join(', ')} 작업을 진행합니다.`;
+      setDescriptionInput(autoDescription);
 
       // 즉시 동기화
       const normalizedItems = autoLoadedItems.map((item) => ({
@@ -121,6 +125,7 @@ export default function Step02WorkDetail({
       onUpdate({
         workItems: normalizedItems,
         workType: primaryTitle || undefined,
+        workDescription: autoDescription,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -259,34 +264,71 @@ export default function Step02WorkDetail({
     }
   };
 
-  // ✅ 함수 분리 2: WorkItems 생성
+  // ✅ 함수 분리 2: WorkItems 생성 (기존 항목 채우기 + 추가)
   const populateWorkItems = (result: WorkAnalysis) => {
     if (result.workItems && result.workItems.length > 0) {
       // 여러 작업 항목이 있는 경우
-      const newItems: WorkItemDraft[] = result.workItems.map((item) => ({
-        ...createEmptyItem(item.title),
-        title: item.title,
-        description: item.description || '',
-        deliverables: item.deliverables || '',
-        unitPrice: item.estimatedPrice,
-        quantity: item.quantity || 1, // ✅ 기본값 1
-      }));
-      const nextItems = [...items, ...newItems];
+      const updatedItems = [...items];
+      const newItems: WorkItemDraft[] = [];
+
+      result.workItems.forEach((aiItem) => {
+        // 기존 항목 중 title이 유사한 것 찾기
+        const existingIndex = updatedItems.findIndex((item) =>
+          item.title.toLowerCase().includes(aiItem.title.toLowerCase()) ||
+          aiItem.title.toLowerCase().includes(item.title.toLowerCase())
+        );
+
+        if (existingIndex !== -1) {
+          // ✅ 기존 항목 채우기 (빈 값만 업데이트)
+          const existing = updatedItems[existingIndex];
+          updatedItems[existingIndex] = {
+            ...existing,
+            description: existing.description || aiItem.description || '',
+            deliverables: existing.deliverables || aiItem.deliverables || '',
+            unitPrice: existing.unitPrice ?? aiItem.estimatedPrice,
+            quantity: existing.quantity ?? aiItem.quantity ?? 1,
+          };
+        } else {
+          // ✅ 새 항목 추가 (기존에 없는 작업)
+          newItems.push({
+            ...createEmptyItem(aiItem.title),
+            title: aiItem.title,
+            description: aiItem.description || '',
+            deliverables: aiItem.deliverables || '',
+            unitPrice: aiItem.estimatedPrice,
+            quantity: aiItem.quantity || 1,
+          });
+        }
+      });
+
+      const nextItems = [...updatedItems, ...newItems];
       syncItems(nextItems);
     } else {
-      // 단일 작업인 경우 - AI 추론 데이터 모두 반영
+      // 단일 작업인 경우 - 첫 번째 항목 채우기
       const estimatedPrice = result.totalAmount || result.suggestedPriceRange?.min || undefined;
 
-      const newItem: WorkItemDraft = {
-        ...createEmptyItem(result.workType || 'AI 추천 작업'),
-        title: result.workType || 'AI 추천 작업',
-        description: descriptionInput.trim(),
-        deliverables: '', // ✅ 단일 작업은 workItems 배열이 없어 deliverables 정보 없음
-        unitPrice: estimatedPrice,
-        quantity: 1, // ✅ 단일 작업은 기본 수량 1
-      };
-      const nextItems = [...items, newItem];
-      syncItems(nextItems);
+      if (items.length > 0) {
+        // ✅ 기존 첫 항목 채우기
+        const updatedItems = [...items];
+        updatedItems[0] = {
+          ...updatedItems[0],
+          description: updatedItems[0].description || descriptionInput.trim(),
+          unitPrice: updatedItems[0].unitPrice ?? estimatedPrice,
+          quantity: updatedItems[0].quantity ?? 1,
+        };
+        syncItems(updatedItems);
+      } else {
+        // 항목이 하나도 없으면 새로 추가
+        const newItem: WorkItemDraft = {
+          ...createEmptyItem(result.workType || 'AI 추천 작업'),
+          title: result.workType || 'AI 추천 작업',
+          description: descriptionInput.trim(),
+          deliverables: '',
+          unitPrice: estimatedPrice,
+          quantity: 1,
+        };
+        syncItems([newItem]);
+      }
     }
   };
 
@@ -422,7 +464,11 @@ export default function Step02WorkDetail({
           <textarea
             value={descriptionInput}
             onChange={(e) => handleDescriptionChange(e.target.value)}
-            placeholder="예: 작곡이 메인이지만 편곡, 믹싱, 마스터링도 함께 진행합니다."
+            placeholder={
+              selectedSubFields && selectedSubFields.length > 0
+                ? "위 작업에 대한 상세 내용을 추가하거나 수정하세요 (예: 각 곡당 50만원씩, 총 3곡)"
+                : "예: 작곡이 메인이지만 편곡, 믹싱, 마스터링도 함께 진행합니다."
+            }
             className="w-full h-32 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none resize-none"
             disabled={isAnalyzing}
           />
