@@ -7,6 +7,7 @@ import { GeneratedContract } from '@/types/contract';
 import Button from '../shared/Button';
 import Toast from '../shared/Toast';
 import { Copy, Download, Share2, CheckCircle } from 'lucide-react';
+import { stripMarkdown, markdownToDownloadText } from '@/lib/utils/markdown-to-plaintext';
 
 interface ContractResultProps {
   contract: GeneratedContract;
@@ -19,7 +20,9 @@ export default function ContractResult({ contract, onEdit }: ContractResultProps
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(contract.content);
+      // 마크다운 문법 제거한 일반 텍스트로 복사
+      const plainText = stripMarkdown(contract.content);
+      await navigator.clipboard.writeText(plainText);
       setToastMessage('계약서가 복사되었어요!');
       setShowToast(true);
     } catch (error) {
@@ -29,11 +32,12 @@ export default function ContractResult({ contract, onEdit }: ContractResultProps
   };
 
   const handleDownload = () => {
-    const blob = new Blob([contract.content], { type: 'text/plain;charset=utf-8' });
+    // 마크다운 문법 제거하고 헤더/푸터 추가한 다운로드용 텍스트
+    const downloadText = markdownToDownloadText(contract.content);
+    const blob = new Blob([downloadText], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    // ✅ 한글 파일명 → 영문 파일명 (브라우저 호환성 개선)
     link.download = `contract_${new Date().toISOString().split('T')[0]}.txt`;
     document.body.appendChild(link);
     link.click();
