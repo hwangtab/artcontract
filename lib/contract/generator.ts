@@ -80,6 +80,8 @@ function generateStandardContract(formData: EnhancedContractFormData): string {
   content += generateArticle12_DisputeResolution(formData);
   content += generateArticle13_Effectiveness(formData);
   content += generateArticle14_PreparingLaw(formData);
+  content += generateArticle15_AssignmentProhibition(formData);
+  content += generateArticle16_NoticeMethod(formData);
 
   // 서명란
   content += generateSignatureSection(formData);
@@ -133,7 +135,7 @@ function generateArticle4_ClientObligations(formData: EnhancedContractFormData):
 
 // 제5조: 창작자의 의무
 function generateArticle5_ArtistObligations(formData: EnhancedContractFormData): string {
-  return `## 제5조 (창작자의 의무)\n\n① 을은 본 계약을 성실히 이행한다.\n\n② 을은 작업 기한을 준수하며, 부득이한 사유로 지연되는 경우 즉시 갑에게 통지한다.\n\n③ 을은 계약 내용에 부합하는 품질을 보증한다.\n\n④ 을은 제3자의 저작권을 침해하지 않음을 보증한다.\n\n---\n\n`;
+  return `## 제5조 (창작자의 의무)\n\n① 을은 본 계약을 성실히 이행한다.\n\n② 을은 작업 기한을 준수하며, 부득이한 사유로 지연되는 경우 즉시 갑에게 통지한다.\n\n③ 을은 계약 내용에 부합하는 품질을 보증한다.\n\n④ 을은 본 저작물이 을의 독창적인 창작물임을 보증한다.\n\n⑤ 을은 본 저작물이 제3자의 저작권, 초상권, 상표권, 기타 지적재산권을 침해하지 않음을 보증한다.\n\n⑥ 제5항을 위반하여 제3자로부터 이의제기 또는 손해배상 청구가 발생한 경우, 을은 그에 관한 모든 책임을 진다.\n\n---\n\n`;
 }
 
 // 제6조: 대금 지급 ⭐ 핵심
@@ -175,10 +177,13 @@ function generateArticle6_Payment(formData: EnhancedContractFormData): string {
     content += `① 총 금액: **${formatCurrency(basicPayment.amount)}**\n\n`;
     if (basicPayment.deposit) {
       const balance = basicPayment.amount - basicPayment.deposit;
-      content += `② 지급 일정:\n   - 계약금: ${formatCurrency(basicPayment.deposit)} (계약 시)\n   - 잔금: ${formatCurrency(balance)} (작업 완료 후)\n\n`;
+      content += `② 지급 일정:\n   - 계약금: ${formatCurrency(basicPayment.deposit)} (계약 시)\n   - 잔금: ${formatCurrency(balance)} (작업 완료 후 7일 이내)\n\n`;
     } else {
-      content += `② 지급 시기: [협의 필요]\n\n`;
+      content += `② 지급 시기: 작업 완료 후 7일 이내\n\n`;
     }
+
+    // 지연이자 자동 추가 (법정이율 12%)
+    content += `③ 갑이 지급 기일을 경과한 경우, 경과 일수에 대하여 연 12%의 지연이자를 가산하여 지급한다. (상법 제54조)\n\n`;
   } else {
     content += `① 총 금액: **[금액 미정]**\n\n⚠️ 금액이 정해지지 않았습니다. 반드시 협의하여 명시하세요.\n\n`;
   }
@@ -373,6 +378,46 @@ function generateArticle13_Effectiveness(formData: EnhancedContractFormData): st
 
 function generateArticle14_PreparingLaw(formData: EnhancedContractFormData): string {
   return `## 제14조 (준거법 및 해석)\n\n① 본 계약은 대한민국 법률에 따라 해석되고 집행된다.\n\n② 본 계약에 명시되지 않은 사항은 다음 순서로 해석한다:\n   1. 저작권법\n   2. 민법\n   3. 상관례 및 신의성실 원칙\n\n③ 계약 내용 중 일부가 무효가 되더라도, 나머지 조항은 유효하게 유지된다.\n\n---\n\n`;
+}
+
+function generateArticle15_AssignmentProhibition(formData: EnhancedContractFormData): string {
+  return `## 제15조 (권리 양도 금지)\n\n① 당사자는 상대방의 사전 서면 동의 없이 본 계약상의 권리 또는 의무를 제3자에게 양도하거나 담보로 제공할 수 없다.\n\n② 제1항을 위반한 양도 또는 담보 제공은 무효로 한다.\n\n---\n\n`;
+}
+
+function generateArticle16_NoticeMethod(formData: EnhancedContractFormData): string {
+  let content = `## 제16조 (통지 방법)\n\n`;
+
+  content += `① 본 계약과 관련된 모든 통지는 다음 연락처로 한다:\n\n`;
+
+  // 갑 (의뢰인)
+  content += `   **갑 (의뢰인)**\n`;
+  content += `   - 성명: ${formData.clientName || '[미정]'}\n`;
+  if (formData.clientContact) {
+    content += `   - 연락처: ${formData.clientContact}\n`;
+  } else {
+    content += `   - 연락처: [미정]\n`;
+  }
+  content += `\n`;
+
+  // 을 (창작자)
+  content += `   **을 (창작자)**\n`;
+  content += `   - 성명: ${formData.artistName || '[미정]'}\n`;
+  if (formData.artistContact) {
+    content += `   - 연락처: ${formData.artistContact}\n`;
+  } else {
+    content += `   - 연락처: [미정]\n`;
+  }
+  if (formData.artistAddress) {
+    content += `   - 주소: ${formData.artistAddress}\n`;
+  }
+  content += `\n`;
+
+  content += `② 연락처가 변경된 경우, 당사자는 즉시 상대방에게 서면으로 통지해야 한다.\n\n`;
+  content += `③ 제2항의 통지를 하지 않아 발생하는 불이익은 통지를 하지 않은 당사자가 부담한다.\n\n`;
+  content += `④ 통지는 전화, 문자메시지, 이메일, 카카오톡 등의 방법으로 할 수 있으며, 상대방이 수신 확인한 시점에 도달한 것으로 본다.\n\n`;
+  content += `---\n\n`;
+
+  return content;
 }
 
 function generateSignatureSection(formData: EnhancedContractFormData | ContractFormData): string {
