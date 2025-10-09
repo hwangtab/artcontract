@@ -17,6 +17,7 @@ interface Step02Props {
   workItems?: WorkItem[];
   aiAnalysis?: WorkAnalysis | null;
   selectedSubFields?: string[];  // Step 1에서 선택한 작업들
+  subField?: string;  // "기타" 선택 시 사용자가 입력한 실제 내용
   onUpdate: (data: Partial<EnhancedContractFormData>) => void;
 }
 
@@ -81,6 +82,7 @@ export default function Step02WorkDetail({
   workItems,
   aiAnalysis,
   selectedSubFields,
+  subField,
   onUpdate,
 }: Step02Props) {
   // ✅ useWorkAnalysis 훅 사용
@@ -102,14 +104,19 @@ export default function Step02WorkDetail({
   // ✅ Step 1에서 선택한 작업들을 자동 로드 + 작업 설명 자동 생성
   useEffect(() => {
     if (!initialLoadDone && selectedSubFields && selectedSubFields.length > 0) {
-      const autoLoadedItems = selectedSubFields.map((subFieldTitle) =>
+      // ✅ "기타"가 있으면 실제 subField 값으로 교체
+      const processedSubFields = selectedSubFields.map(field =>
+        field === '기타' && subField ? subField : field
+      );
+
+      const autoLoadedItems = processedSubFields.map((subFieldTitle) =>
         createEmptyItem(subFieldTitle)
       );
       setItems(autoLoadedItems);
       setInitialLoadDone(true);
 
-      // ✅ 작업 설명 자동 생성
-      const autoDescription = `${selectedSubFields.join(', ')} 작업을 진행합니다.`;
+      // ✅ 작업 설명 자동 생성 (처리된 필드명 사용)
+      const autoDescription = `${processedSubFields.join(', ')} 작업을 진행합니다.`;
       setDescriptionInput(autoDescription);
 
       // 즉시 동기화
@@ -128,7 +135,7 @@ export default function Step02WorkDetail({
         workDescription: autoDescription,
       });
     }
-  }, [selectedSubFields, initialLoadDone, onUpdate]);
+  }, [selectedSubFields, initialLoadDone, subField, onUpdate]);
 
   useEffect(() => {
     setDescriptionInput(workDescription || '');

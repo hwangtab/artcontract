@@ -145,6 +145,7 @@ export default function WizardContainer() {
             workItems={formData.workItems}
             aiAnalysis={formData.aiAnalysis}
             selectedSubFields={formData.selectedSubFields}
+            subField={formData.subField}
             onUpdate={(data) => updateFormData(data)}
           />
         );
