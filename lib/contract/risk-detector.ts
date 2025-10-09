@@ -60,9 +60,11 @@ function getNestedValue(obj: any, path: string): any {
 /**
  * 계약서 위험 요소 자동 감지 시스템
  * 문화체육관광부 표준계약서 기준 적용
+ * @param currentStep 현재 단계 (옵션) - 해당 단계 이전에는 경고를 표시하지 않음
  */
 export function detectContractRisks(
-  formData: EnhancedContractFormData | ContractFormData
+  formData: EnhancedContractFormData | ContractFormData,
+  currentStep?: number
 ): RiskDetectionResult {
   const warnings: Warning[] = [];
   const criticalErrors: string[] = [];
@@ -193,17 +195,19 @@ export function detectContractRisks(
 
   // ========== HIGH: 금액 관련 위험 ==========
 
-  if (amount === undefined) {
-    warnings.push({
-      id: 'no_payment',
-      severity: 'danger',
-      message: '🚨 금액이 정해지지 않았습니다!',
-      suggestion: '금액 없이 작업하면 나중에 분쟁 위험이 매우 높습니다. 반드시 금액을 정하세요.',
-      autoTrigger: true,
-      dismissible: false,
-      relatedField: 'payment.amount',
-    });
-  } else if (amount === 0) {
+  // ✅ Step 5 이상에서만 금액 경고 표시
+  if (currentStep === undefined || currentStep >= 5) {
+    if (amount === undefined) {
+      warnings.push({
+        id: 'no_payment',
+        severity: 'danger',
+        message: '🚨 금액이 정해지지 않았습니다!',
+        suggestion: '금액 없이 작업하면 나중에 분쟁 위험이 매우 높습니다. 반드시 금액을 정하세요.',
+        autoTrigger: true,
+        dismissible: false,
+        relatedField: 'payment.amount',
+      });
+    } else if (amount === 0) {
     // 5. 0원 계약
     criticalErrors.push('금액은 0원일 수 없습니다!');
     warnings.push({
@@ -293,24 +297,27 @@ export function detectContractRisks(
         relatedField: 'enhancedPayment.bankAccount',
       });
     }
-  }
+    }
 
-  if (itemsTotal > 0 && amount === 0) {
-    warnings.push({
-      id: 'work_items_without_payment',
-      severity: 'danger',
-      message: '🚨 작업 항목 금액 합계는 있지만 총 계약 금액이 0원입니다.',
-      suggestion: 'Step05에서 총 금액을 입력하거나 항목별 금액을 조정해 계약 금액을 확정하세요.',
-      autoTrigger: true,
-      dismissible: false,
-      relatedField: 'payment.amount',
-    });
-  }
+    if (itemsTotal > 0 && amount === 0) {
+      warnings.push({
+        id: 'work_items_without_payment',
+        severity: 'danger',
+        message: '🚨 작업 항목 금액 합계는 있지만 총 계약 금액이 0원입니다.',
+        suggestion: 'Step05에서 총 금액을 입력하거나 항목별 금액을 조정해 계약 금액을 확정하세요.',
+        autoTrigger: true,
+        dismissible: false,
+        relatedField: 'payment.amount',
+      });
+    }
+  } // ✅ Step 5 조건 끝
 
   // ========== HIGH: 수정 횟수 관련 ==========
 
-  // 10. 무제한 수정
-  if (formData.revisions === 'unlimited') {
+  // ✅ Step 6 이상에서만 수정 횟수 경고 표시
+  if (currentStep === undefined || currentStep >= 6) {
+    // 10. 무제한 수정
+    if (formData.revisions === 'unlimited') {
     warnings.push({
       id: 'unlimited_revisions',
       severity: 'danger',
@@ -366,11 +373,13 @@ export function detectContractRisks(
       dismissible: true,
       relatedField: 'additionalRevisionFee',
     });
-  }
+    }
+  } // ✅ Step 6 조건 끝
 
   // ========== MEDIUM: 일정 관련 ==========
 
-  if (formData.timeline?.deadline) {
+  // ✅ Step 4 이상에서만 일정 경고 표시
+  if ((currentStep === undefined || currentStep >= 4) && formData.timeline?.deadline) {
     const deadline = formData.timeline.deadline;
     const today = new Date();
     const diffDays = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -419,8 +428,8 @@ export function detectContractRisks(
 
   // ========== MEDIUM: 보호 조항 누락 ==========
 
-  // 17. 크레딧 조항 없음
-  if (!enhanced.protectionClauses?.creditAttribution) {
+  // ✅ Step 9 이상에서만 크레딧 조항 경고 표시
+  if ((currentStep === undefined || currentStep >= 9) && !enhanced.protectionClauses?.creditAttribution) {
     warnings.push({
       id: 'no_credit_clause',
       severity: 'info',
@@ -433,8 +442,9 @@ export function detectContractRisks(
     });
   }
 
+  // ✅ Step 8 이상에서만 사용 범위 경고 표시
   // 18. 사용 범위 미정
-  if (!formData.usageScope || formData.usageScope.length === 0) {
+  if ((currentStep === undefined || currentStep >= 8) && (!formData.usageScope || formData.usageScope.length === 0)) {
     if (!enhanced.copyrightTerms) {
       warnings.push({
         id: 'no_usage_scope',
@@ -450,7 +460,7 @@ export function detectContractRisks(
   }
 
   // 19. 사용 범위 무제한
-  if (formData.usageScope?.includes('unlimited')) {
+  if ((currentStep === undefined || currentStep >= 8) && formData.usageScope?.includes('unlimited')) {
     warnings.push({
       id: 'unlimited_usage',
       severity: 'warning',
@@ -463,8 +473,9 @@ export function detectContractRisks(
     });
   }
 
+  // ✅ Step 3 이상에서만 클라이언트 정보 경고 표시
   // 20. 클라이언트 정보 없음
-  if (!formData.clientName) {
+  if ((currentStep === undefined || currentStep >= 3) && !formData.clientName) {
     warnings.push({
       id: 'no_client_info',
       severity: 'warning',

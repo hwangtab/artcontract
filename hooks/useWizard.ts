@@ -33,8 +33,8 @@ export function useWizard() {
     setState((prev) => {
       const newFormData = { ...prev.formData, ...updates } as EnhancedContractFormData;
 
-      // 위험 감지 시스템 (통합)
-      const detection = detectContractRisks(newFormData);
+      // 위험 감지 시스템 (통합) - currentStep 전달하여 단계별 경고 제어
+      const detection = detectContractRisks(newFormData, prev.currentStep);
 
       // completeness, riskLevel, warnings 모두 한 번에 계산
       const completeness = detection.completeness;
