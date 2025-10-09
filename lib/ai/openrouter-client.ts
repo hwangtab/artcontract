@@ -282,10 +282,10 @@ JSON만 출력하세요 (주석 없이):`;
     userMessage: string,
     context: {
       currentStep: number;
-      formData: any;
+      formData: import('@/types/contract').ContractFormData;
       conversationHistory: Array<{ role: string; content: string }>;
     }
-  ): Promise<{ message: string; formUpdates?: any }> {
+  ): Promise<{ message: string; formUpdates?: Partial<import('@/types/contract').ContractFormData> }> {
     // 단계별 가이드 생성
     const getStepGuidance = (step: number): string => {
       switch (step) {
