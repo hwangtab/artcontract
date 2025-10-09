@@ -34,7 +34,7 @@ export default function Input({
   const helperId = `${id}-helper`;
 
   const inputClasses = `
-    w-full h-12 px-4 rounded-lg border-2 transition-all
+    w-full py-3 px-4 rounded-lg border-2 transition-all
     ${error ? 'border-danger focus:border-danger' : 'border-gray-300 focus:border-primary-500'}
     ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
     focus:outline-none focus:ring-2 focus:ring-primary-500/20

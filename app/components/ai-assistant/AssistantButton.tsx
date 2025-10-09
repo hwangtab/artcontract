@@ -21,7 +21,7 @@ export default function AssistantButton({
         fixed
         bottom-20 md:bottom-6
         left-4 md:left-6
-        w-16 h-16 md:w-14 md:h-14
+        w-14 h-14
         rounded-full
         shadow-lg
         transition-all

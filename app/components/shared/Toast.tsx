@@ -47,7 +47,7 @@ export default function Toast({
 
   return (
     <div
-      className={`fixed bottom-6 right-6 ${config.bg} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 transition-all duration-300 z-50 ${
+      className={`fixed top-6 md:top-auto md:bottom-6 right-6 ${config.bg} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 transition-all duration-300 z-50 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
       }`}
     >
