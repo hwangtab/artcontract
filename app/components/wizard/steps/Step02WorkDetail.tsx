@@ -128,8 +128,7 @@ export default function Step02WorkDetail({
         workDescription: autoDescription,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSubFields, initialLoadDone]);
+  }, [selectedSubFields, initialLoadDone, onUpdate]);
 
   useEffect(() => {
     setDescriptionInput(workDescription || '');
