@@ -86,12 +86,6 @@ function generateStandardContract(formData: EnhancedContractFormData): string {
   // 서명란
   content += generateSignatureSection(formData);
 
-  // 법적 면책
-  content += `\n---\n\n`;
-  content += `## 법적 고지\n\n`;
-  content += `본 계약서는 예술가를 위한 표준계약서 템플릿이며, 법률 자문을 대체하지 않습니다. `;
-  content += `계약 체결 전 법률 전문가의 검토를 권장합니다.\n\n`;
-
   return content;
 }
 
