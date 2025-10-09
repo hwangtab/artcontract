@@ -103,20 +103,34 @@ export default function Step02WorkDetail({
 
   // ✅ Step 1에서 선택한 작업들을 자동 로드 + 작업 설명 자동 생성
   useEffect(() => {
-    if (!initialLoadDone && selectedSubFields && selectedSubFields.length > 0) {
-      // ✅ "기타"가 있으면 실제 subField 값으로 교체
-      const processedSubFields = selectedSubFields.map(field =>
-        field === '기타' && subField ? subField : field
-      );
+    if (!initialLoadDone) {
+      let fieldsToProcess: string[] = [];
 
-      const autoLoadedItems = processedSubFields.map((subFieldTitle) =>
+      // Case 1: 복수 선택 (selectedSubFields 사용)
+      if (selectedSubFields && selectedSubFields.length > 0) {
+        // "기타"가 있으면 실제 subField 값으로 교체
+        fieldsToProcess = selectedSubFields.map(field =>
+          field === '기타' && subField ? subField : field
+        );
+      }
+      // Case 2: "기타" 분야 단일 입력 (subField만 있음)
+      else if (subField && subField.trim()) {
+        fieldsToProcess = [subField];
+      }
+
+      // 작업 항목이 없으면 생성하지 않음
+      if (fieldsToProcess.length === 0) {
+        return;
+      }
+
+      const autoLoadedItems = fieldsToProcess.map((subFieldTitle) =>
         createEmptyItem(subFieldTitle)
       );
       setItems(autoLoadedItems);
       setInitialLoadDone(true);
 
       // ✅ 작업 설명 자동 생성 (처리된 필드명 사용)
-      const autoDescription = `${processedSubFields.join(', ')} 작업을 진행합니다.`;
+      const autoDescription = `${fieldsToProcess.join(', ')} 작업을 진행합니다.`;
       setDescriptionInput(autoDescription);
 
       // 즉시 동기화
