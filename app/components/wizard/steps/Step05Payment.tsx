@@ -6,6 +6,7 @@ import Button from '../../shared/Button';
 import AIRecommendationBanner from '../../shared/AIRecommendationBanner';
 import { formatCurrency } from '@/lib/utils/currency-format';
 import { WorkItem } from '@/types/contract';
+import { PAYMENT_THRESHOLDS } from '@/lib/constants';
 
 interface Step05Props {
   amount?: number;
@@ -81,13 +82,13 @@ export default function Step05Payment({
     let coachMessage = '';
     let band: string | null = null;
 
-    if (parsedAmount < 50000) {
-      coachMessage = `💡 ${formatCurrency(parsedAmount)}은 조금 낮은 금액이에요. 시간과 노력을 고려하면 최소 5만원 이상 받으시는 걸 추천해요.`;
+    if (parsedAmount < PAYMENT_THRESHOLDS.LOW) {
+      coachMessage = `💡 ${formatCurrency(parsedAmount)}은 조금 낮은 금액이에요. 시간과 노력을 고려하면 최소 ${formatCurrency(PAYMENT_THRESHOLDS.LOW)} 이상 받으시는 걸 추천해요.`;
       band = '<50k';
-    } else if (parsedAmount < 100000) {
+    } else if (parsedAmount < PAYMENT_THRESHOLDS.DEPOSIT_MIN) {
       coachMessage = `👍 ${formatCurrency(parsedAmount)}이시군요! 적정한 금액이에요. 작업 시작 전에 일부를 선금으로 받으면 더 안전해요.`;
       band = '50-100k';
-    } else if (parsedAmount < 1000000) {
+    } else if (parsedAmount < PAYMENT_THRESHOLDS.HIGH) {
       const recommendedDeposit = Math.floor(parsedAmount * 0.3);
       coachMessage = `💼 ${formatCurrency(parsedAmount)}! 계약금 ${formatCurrency(recommendedDeposit)}(30%)를 먼저 받으시는 걸 추천해요. 계약 이행을 보증하는 역할을 해요.`;
       band = '100k-1m';

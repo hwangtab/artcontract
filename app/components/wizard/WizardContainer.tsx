@@ -23,6 +23,7 @@ import ConfirmModal from '../shared/ConfirmModal';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { generateContract } from '@/lib/contract/generator';
 import { GeneratedContract, ContractTemplate } from '@/types/contract';
+import { TIMEOUTS } from '@/lib/constants';
 
 export default function WizardContainer() {
   const {
@@ -70,9 +71,9 @@ export default function WizardContainer() {
   const handleGenerateContract = async () => {
     // 템플릿 가져오기
     try {
-      // ✅ 타임아웃 설정 (10초)
+      // ✅ 타임아웃 설정
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), TIMEOUTS.API_TEMPLATE);
 
       const response = await fetch(`/api/templates?field=${formData.field}`, {
         signal: controller.signal,
