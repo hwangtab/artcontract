@@ -240,7 +240,13 @@ function generateArticle7_RightsAttribution(formData: EnhancedContractFormData):
     content += `⑥ 본 조에서 정하지 않은 권리는 모두 을에게 유보된다.\n\n`;
   } else {
     const scopeKor = formData.usageScope?.map(s => {
-      const map: any = {'personal': '개인적 사용', 'commercial': '상업적 사용', 'online': '온라인 사용', 'print': '인쇄물 사용', 'unlimited': '무제한 사용'};
+      const map: Record<string, string> = {
+        'personal': '개인적 사용',
+        'commercial': '상업적 사용',
+        'online': '온라인 사용',
+        'print': '인쇄물 사용',
+        'unlimited': '무제한 사용'
+      };
       return map[s] || s;
     }).join(', ') || '[사용 범위 미정]';
 
@@ -475,12 +481,29 @@ function formalizeDescription(text: string): string {
 }
 
 function getFieldName(field?: string): string {
-  const map: any = {'design': '디자인/일러스트', 'photography': '사진/영상', 'writing': '글쓰기', 'music': '음악', 'video': '영상', 'voice': '성우/더빙', 'translation': '번역', 'other': '기타 창작'};
+  const map: Record<string, string> = {
+    'design': '디자인/일러스트',
+    'photography': '사진/영상',
+    'writing': '글쓰기',
+    'music': '음악',
+    'video': '영상',
+    'voice': '성우/더빙',
+    'translation': '번역',
+    'other': '기타 창작'
+  };
   return map[field || 'other'] || '창작';
 }
 
 function get납품형태(formData: EnhancedContractFormData): string {
-  const formats: any = {'design': 'JPG, PNG, PDF 등 디지털 파일', 'photography': '보정본 JPG 및 원본 RAW 파일', 'writing': 'DOCX 또는 HWP 문서', 'music': 'MP3, WAV 등 음원 파일', 'video': 'MP4, MOV 등 영상 파일', 'voice': 'MP3, WAV 등 음원 파일', 'translation': 'DOCX 또는 HWP 문서'};
+  const formats: Record<string, string> = {
+    'design': 'JPG, PNG, PDF 등 디지털 파일',
+    'photography': '보정본 JPG 및 원본 RAW 파일',
+    'writing': 'DOCX 또는 HWP 문서',
+    'music': 'MP3, WAV 등 음원 파일',
+    'video': 'MP4, MOV 등 영상 파일',
+    'voice': 'MP3, WAV 등 음원 파일',
+    'translation': 'DOCX 또는 HWP 문서'
+  };
   return formats[formData.field || 'other'] || '디지털 파일 또는 인쇄물';
 }
 

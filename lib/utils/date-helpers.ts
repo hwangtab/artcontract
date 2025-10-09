@@ -1,3 +1,11 @@
+export function isValidDateString(dateString: string | Date | undefined | null): boolean {
+  if (!dateString) {
+    return false;
+  }
+  const date = dateString instanceof Date ? dateString : new Date(dateString);
+  return !isNaN(date.getTime());
+}
+
 export function formatDate(date: Date): string {
   return new Intl.DateTimeFormat('ko-KR', {
     year: 'numeric',

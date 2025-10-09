@@ -1,6 +1,7 @@
 import { AIContext, AIMessage, AIResponse } from '@/types/ai-assistant';
 import { getOpenRouterClient } from './openrouter-client';
 import { getFAQResponse } from '../ai-assistant/faq-database';
+import { isValidDateString } from '../utils/date-helpers';
 
 export async function handleConversation(
   userMessage: string,
@@ -30,24 +31,22 @@ export async function handleConversation(
     });
 
     // ✅ AI 응답 검증 1: timeline.deadline 유효성 체크
-    if (response.formUpdates?.timeline?.deadline) {
-      const deadline = new Date(response.formUpdates.timeline.deadline);
-      if (isNaN(deadline.getTime())) {
-        console.warn('AI returned invalid deadline:', response.formUpdates.timeline.deadline);
-        // 잘못된 날짜는 제거
-        delete response.formUpdates.timeline.deadline;
-      }
+    if (response.formUpdates?.timeline?.deadline && !isValidDateString(response.formUpdates.timeline.deadline)) {
+      console.warn('AI returned invalid deadline:', response.formUpdates.timeline.deadline);
+      // 잘못된 날짜는 제거
+      delete response.formUpdates.timeline.deadline;
     }
 
     // ✅ AI 응답 검증 2: 주제 이탈 감지 (안전망)
+    // 의도 파악 가능한 구체적 패턴 (계약 관련 오탐 방지)
     const offTopicPatterns = [
-      /날씨.*(?:맑|흐림|비|눈|더워|추워|쾌청)/i,
-      /(?:요리|음식|레시피).*(?:만들|끓이|볶|조리)/i,
-      /(?:영화|드라마|예능).*(?:추천|재미|관람|시청)/i,
-      /(?:게임|오락).*(?:플레이|공략|레벨|캐릭터)/i,
-      /(?:주식|코인|투자).*(?:시세|매수|매도|상승|하락)/i,
-      /(?:여행|관광).*(?:숙소|항공|패키지)/i,
-      /(?:정치|선거|의원|대통령).*(?:정책|공약|투표)/i,
+      /(?:오늘|내일|현재|이번주).*(?:날씨|기온).*(?:어때|알려줘|궁금|어떻게)/i, // "오늘 날씨 어때?"
+      /(?:요리|레시피).*(?:만드는 법|방법|알려줘|가르쳐)/i, // "파스타 만드는 법"
+      /(?:영화|드라마).*(?:추천|뭐 볼까|재미있는|명작)/i, // "영화 추천해줘"
+      /(?:게임).*(?:하고 싶|재미있|추천|공략|어떻게 깨)/i, // "게임 추천"
+      /(?:주식|코인).*(?:사야|팔아|시세|전망|투자)/i, // "비트코인 사야 해?"
+      /(?:여행).*(?:가고 싶|추천|어디|가볼만한|패키지)/i, // "여행 추천"
+      /(?:정치|선거).*(?:누구|어떻게|투표|지지|반대)/i, // "선거 누구 뽑을까"
     ];
 
     const isOffTopic = offTopicPatterns.some(pattern => pattern.test(response.message));
