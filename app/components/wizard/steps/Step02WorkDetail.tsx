@@ -65,6 +65,12 @@ function toNumber(value?: string): number | undefined {
 
   // 쉼표 제거 후 parseFloat
   const cleaned = value.replace(/,/g, '');
+
+  // ✅ 유효한 숫자 형식인지 정규식으로 검증 (1.2.3, 1a2 같은 잘못된 입력 방지)
+  if (!/^\d*\.?\d*$/.test(cleaned)) {
+    return undefined;
+  }
+
   const parsed = parseFloat(cleaned);
 
   // NaN 체크 + 유효한 숫자인지 확인
