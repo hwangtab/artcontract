@@ -8,6 +8,7 @@ import ErrorBanner from '../../shared/ErrorBanner';
 import ConfirmModal from '../../shared/ConfirmModal';
 import { ArtField, WorkAnalysis, WorkItem, EnhancedContractFormData } from '@/types/contract';
 import { Sparkles, Check, AlertTriangle, Plus, Trash2 } from 'lucide-react';
+import { useWorkAnalysis } from '@/hooks/useWorkAnalysis';
 
 interface Step02Props {
   field: ArtField;
@@ -82,16 +83,15 @@ export default function Step02WorkDetail({
   selectedSubFields,
   onUpdate,
 }: Step02Props) {
+  // ✅ useWorkAnalysis 훅 사용
+  const { isAnalyzing, error: analysisError, analysisResult, analyze, clearError } = useWorkAnalysis(field);
+
   const [descriptionInput, setDescriptionInput] = useState(workDescription || '');
   const [items, setItems] = useState<WorkItemDraft[]>(() =>
     (workItems || []).map((item) => ({ ...item }))
   );
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<WorkAnalysis | null>(aiAnalysis || null);
   const [isAnalysisOutdated, setIsAnalysisOutdated] = useState(false); // ✅ 분석 결과 만료 상태
   const [showQuickOptions, setShowQuickOptions] = useState(false);
-  const [showErrorBanner, setShowErrorBanner] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
   const [initialLoadDone, setInitialLoadDone] = useState(false);
 
   // ConfirmModal 상태
@@ -234,36 +234,6 @@ export default function Step02WorkDetail({
     await performAIAnalysis();
   };
 
-  // ✅ 함수 분리 1: API 호출
-  const callAnalysisApi = async (): Promise<WorkAnalysis | null> => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-    try {
-      const response = await fetch('/api/analyze-work', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          field,
-          userInput: descriptionInput.trim(),
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-      const data = await response.json();
-
-      if (data.success && data.data) {
-        return data.data;
-      }
-
-      throw new Error('API response invalid');
-    } catch (error) {
-      clearTimeout(timeoutId);
-      throw error;
-    }
-  };
-
   // ✅ 함수 분리 2: WorkItems 생성 (기존 항목 채우기 + 추가)
   const populateWorkItems = (result: WorkAnalysis) => {
     if (result.workItems && result.workItems.length > 0) {
@@ -381,40 +351,14 @@ export default function Step02WorkDetail({
     onUpdate(updates);
   };
 
-  // ✅ 함수 분리 4: 에러 처리
-  const handleAnalysisError = (error: unknown) => {
-    console.error('Analysis failed:', error);
-
-    let errorMsg = 'AI 분석 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.';
-    if (error instanceof Error && error.name === 'AbortError') {
-      errorMsg = '⏱️ AI 분석 시간이 초과되었어요. 네트워크 상태를 확인하고 다시 시도해주세요.';
-    }
-
-    setErrorMessage(errorMsg);
-    setShowErrorBanner(true);
-  };
-
-  // ✅ 메인 함수: 조율자 역할
+  // ✅ 메인 함수: useWorkAnalysis 훅 사용
   const performAIAnalysis = async () => {
-    setIsAnalyzing(true);
+    const result = await analyze(descriptionInput);
 
-    try {
-      const result = await callAnalysisApi();
-
-      if (result) {
-        setAnalysisResult(result);
-        setIsAnalysisOutdated(false); // ✅ 새로운 분석 결과는 최신 상태
-        setShowErrorBanner(false);
-        populateWorkItems(result);
-        populateNextSteps(result);
-      } else {
-        setErrorMessage('AI 분석에 실패했어요. 네트워크 상태를 확인하고 다시 시도해주세요.');
-        setShowErrorBanner(true);
-      }
-    } catch (error) {
-      handleAnalysisError(error);
-    } finally {
-      setIsAnalyzing(false);
+    if (result) {
+      setIsAnalysisOutdated(false); // ✅ 새로운 분석 결과는 최신 상태
+      populateWorkItems(result);
+      populateNextSteps(result);
     }
   };
 
@@ -516,10 +460,10 @@ export default function Step02WorkDetail({
             </div>
           )}
 
-          {showErrorBanner && (
+          {analysisError && (
             <div className="mt-4">
               <ErrorBanner
-                message={errorMessage}
+                message={analysisError}
                 onRetry={handleAIAnalysis}
                 retryLabel="다시 분석하기"
               />
