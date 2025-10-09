@@ -101,6 +101,9 @@ export default function Step02WorkDetail({
   const [pendingDuplicateItem, setPendingDuplicateItem] = useState<WorkItemDraft | null>(null);
   const [duplicateItemTitle, setDuplicateItemTitle] = useState('');
 
+  // ✅ AI 분석 결과 자동 스크롤을 위한 ref
+  const analysisResultRef = React.useRef<HTMLDivElement>(null);
+
   // ✅ Step 1에서 선택한 작업들을 자동 로드 + 작업 설명 자동 생성
   useEffect(() => {
     if (!initialLoadDone) {
@@ -379,6 +382,11 @@ export default function Step02WorkDetail({
       setIsAnalysisOutdated(false); // ✅ 새로운 분석 결과는 최신 상태
       populateWorkItems(result);
       populateNextSteps(result);
+
+      // ✅ 분석 완료 후 결과로 자동 스크롤
+      setTimeout(() => {
+        analysisResultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
     }
   };
 
@@ -593,7 +601,9 @@ export default function Step02WorkDetail({
 
         {/* AI 분석 결과 */}
         {analysisResult && (
-          <div className={`p-6 rounded-xl border-2 ${
+          <div
+            ref={analysisResultRef}
+            className={`p-6 rounded-xl border-2 ${
             isAnalysisOutdated
               ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-warning'
               : 'bg-gradient-to-r from-primary-50 to-blue-50 border-primary-300'

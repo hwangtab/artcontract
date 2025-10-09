@@ -124,13 +124,14 @@ export default function ConfirmModal({
           >
             {cancelLabel}
           </Button>
-          <button
+          <Button
             ref={confirmButtonRef}
+            variant="primary"
+            size="medium"
             onClick={onConfirm}
-            className="px-6 py-3 text-base font-medium rounded-lg bg-primary-500 text-white hover:bg-primary-600 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200"
           >
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

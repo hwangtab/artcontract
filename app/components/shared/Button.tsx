@@ -13,7 +13,7 @@ interface ButtonProps {
   className?: string;
 }
 
-export default function Button({
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   children,
   onClick,
   variant = 'primary',
@@ -22,7 +22,7 @@ export default function Button({
   fullWidth = false,
   type = 'button',
   className = '',
-}: ButtonProps) {
+}, ref) {
   const baseClasses =
     'font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2';
 
@@ -46,6 +46,7 @@ export default function Button({
 
   return (
     <button
+      ref={ref}
       type={type}
       onClick={onClick}
       disabled={disabled}
@@ -54,4 +55,6 @@ export default function Button({
       {children}
     </button>
   );
-}
+});
+
+export default Button;
