@@ -21,21 +21,21 @@ const fields = [
     label: '🎨 그림/디자인',
     description: '일러스트, 웹툰, 로고, 포스터',
     icon: Palette,
-    subFields: ['일러스트', '웹툰', '캐릭터 디자인', '로고 디자인', '포스터 디자인', 'UI/UX 디자인', '패키지 디자인', '기타'],
+    subFields: ['일러스트', '웹툰', '캐릭터 디자인', '로고 디자인', '명함 디자인', '포스터 디자인', '배너 디자인', 'UI/UX 디자인', '패키지 디자인', '3D 모델링', '기타'],
   },
   {
     id: 'photography' as ArtField,
     label: '📸 사진',
     description: '인물, 상품, 행사 촬영',
     icon: Camera,
-    subFields: ['인물 사진', '제품 사진', '행사 촬영', '음식 사진', '건축 사진', '패션 사진', '기타'],
+    subFields: ['인물 사진', '제품 사진', '행사 촬영', '음식 사진', '건축 사진', '패션 사진', '스튜디오 촬영', '리터칭/보정', '기타'],
   },
   {
     id: 'video' as ArtField,
     label: '🎬 영상',
     description: '촬영, 편집, 애니메이션',
     icon: Video,
-    subFields: ['영상 촬영', '영상 편집', '모션그래픽', '애니메이션', '유튜브 영상', '광고 영상', '기타'],
+    subFields: ['영상 촬영', '영상 편집', '컬러그레이딩', '자막 작업', '모션그래픽', '애니메이션', '유튜브 영상', '광고 영상', '기타'],
   },
   {
     id: 'writing' as ArtField,
@@ -49,7 +49,7 @@ const fields = [
     label: '🎵 음악',
     description: '작곡, 편곡, 녹음',
     icon: Music,
-    subFields: ['작곡', '편곡', '믹싱/마스터링', '악기 연주', 'MR 제작', 'BGM 제작', '기타'],
+    subFields: ['작곡', '작사', '편곡', '녹음', '믹싱/마스터링', '악기 연주', '보컬 디렉팅', 'MR 제작', 'BGM 제작', '사운드 디자인', '기타'],
   },
   {
     id: 'voice' as ArtField,
