@@ -19,8 +19,6 @@ export default function AssistantButton({
       onClick={onClick}
       className={`
         fixed
-        bottom-20 md:bottom-6
-        left-4 md:left-6
         w-14 h-14
         rounded-full
         shadow-lg
@@ -37,7 +35,7 @@ export default function AssistantButton({
         }
       `}
       style={{
-        // iOS Safe Area 고려
+        // ✅ inline style로 위치 제어 (Tailwind CSS 충돌 방지)
         bottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))',
         left: 'calc(1.5rem + env(safe-area-inset-left, 0px))',
       }}
