@@ -1,5 +1,26 @@
 import { LRUCache } from 'lru-cache';
 
+/**
+ * ⚠️ CRITICAL ISSUE: 분산 환경에서 Rate Limiting 우회 가능
+ *
+ * 현재 구현의 문제점:
+ * - LRU Cache는 인메모리 캐시로, 각 서버리스 인스턴스가 별도의 메모리를 가짐
+ * - Vercel 서버리스 환경에서 사용자가 다른 인스턴스에 접속하면 제한을 우회할 수 있음
+ * - 사실상 Rate Limiting이 제대로 동작하지 않음
+ *
+ * 해결 방법:
+ * - Vercel KV (Redis) 또는 Upstash Redis 사용으로 중앙화된 캐시 구현
+ * - 모든 서버리스 인스턴스가 동일한 Rate Limit 상태를 공유하도록 변경
+ *
+ * TODO:
+ * 1. Vercel Dashboard에서 KV Database 생성
+ * 2. @vercel/kv 패키지 설치: npm install @vercel/kv
+ * 3. 환경변수 설정: KV_REST_API_URL, KV_REST_API_TOKEN
+ * 4. 이 파일을 Vercel KV 기반으로 완전히 재작성
+ *
+ * 참고: https://vercel.com/docs/storage/vercel-kv
+ */
+
 export interface RateLimiterOptions {
   interval: number; // 시간 윈도우 (밀리초)
   uniqueTokenPerInterval: number; // 시간 윈도우당 허용 토큰 수

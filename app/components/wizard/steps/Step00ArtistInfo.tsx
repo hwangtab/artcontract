@@ -44,9 +44,7 @@ export default function Step00ArtistInfo({
           <Input
             label="작가 이름"
             value={artistName || ''}
-            onChange={(value) =>
-              onUpdate({ artistName: value, artistContact, artistIdNumber, artistAddress })
-            }
+            onChange={(value) => onUpdate({ artistName: value })}
             placeholder="홍길동"
             helper="실명을 입력하세요 (계약서에 표기됩니다)"
             required
@@ -55,9 +53,7 @@ export default function Step00ArtistInfo({
           <Input
             label="연락처"
             value={artistContact || ''}
-            onChange={(value) =>
-              onUpdate({ artistName, artistContact: value, artistIdNumber, artistAddress })
-            }
+            onChange={(value) => onUpdate({ artistContact: value })}
             placeholder="010-1234-5678 또는 email@example.com"
             helper="전화번호 또는 이메일 주소"
             required
@@ -73,9 +69,7 @@ export default function Step00ArtistInfo({
           <Input
             label="주민등록번호 또는 사업자번호"
             value={artistIdNumber || ''}
-            onChange={(value) =>
-              onUpdate({ artistName, artistContact, artistIdNumber: value, artistAddress })
-            }
+            onChange={(value) => onUpdate({ artistIdNumber: value })}
             placeholder="예: 850101-1234567 또는 123-45-67890"
             helper="법적 효력을 위해 전체 번호 입력을 권장합니다"
           />
@@ -83,9 +77,7 @@ export default function Step00ArtistInfo({
           <Input
             label="주소"
             value={artistAddress || ''}
-            onChange={(value) =>
-              onUpdate({ artistName, artistContact, artistIdNumber, artistAddress: value })
-            }
+            onChange={(value) => onUpdate({ artistAddress: value })}
             placeholder="서울시 강남구 테헤란로 123"
             helper="정식 계약서에는 주소가 명시되는 것이 좋습니다"
           />

@@ -174,7 +174,7 @@ export default function Step01FieldSelection({ selectedField, subField, selected
                   onClick={() => handleSubFieldToggle(sub)}
                   role="checkbox"
                   aria-checked={isSelected}
-                  className={`px-4 py-3 rounded-lg border-2 transition-all text-sm flex items-center gap-2 ${
+                  className={`px-3 py-2 md:px-4 md:py-3 rounded-lg border-2 transition-all text-sm flex items-center gap-2 ${
                     isSelected
                       ? 'border-primary-500 bg-primary-50 text-primary-700 font-medium'
                       : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300'

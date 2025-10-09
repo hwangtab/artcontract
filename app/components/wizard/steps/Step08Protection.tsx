@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Card from '../../shared/Card';
-import Button from '../../shared/Button';
 import Input from '../../shared/Input';
-import Toast from '../../shared/Toast';
-import { Shield, AlertCircle, Lock, UserCheck, Check } from 'lucide-react';
+import { Shield, AlertCircle, Lock, UserCheck } from 'lucide-react';
 import { ProtectionClauses, CreditTerms, ModificationTerms, ConfidentialityTerms } from '@/types/contract';
 
 interface Step08ProtectionProps {
@@ -25,74 +23,55 @@ export default function Step08Protection({
   additionalRevisionFee,
   onUpdate,
 }: Step08ProtectionProps) {
-  // 크레딧 명기
-  const [enableCredit, setEnableCredit] = useState(!!protectionClauses?.creditAttribution);
-  const [credit, setCredit] = useState<CreditTerms>(
-    protectionClauses?.creditAttribution || {
-      displayMethod: 'text',
-      displayPosition: 'end',
-      displayContent: `${getFieldName(field)} 작업: ${artistName || '[창작자명]'}`,
-      onlineDisplay: true,
-      penaltyForOmission: true,
-    }
-  );
-
-  // 수정 권리
-  const [enableModification, setEnableModification] = useState(!!protectionClauses?.modificationRights);
-  const [modification, setModification] = useState<ModificationTerms>(
-    protectionClauses?.modificationRights || {
-      minorModifications: {
-        count: revisions && revisions !== 'unlimited' ? revisions : 3,
-        free: true,
-      },
-      additionalModifications: {
-        pricePerModification: additionalRevisionFee || 0,
-      },
-      substantialChanges: {
-        requiresConsent: true,
-        definition: [
-          '작품의 주제, 메시지, 스타일의 근본적 변경',
-          '작품 일부의 삭제 또는 추가',
-          '기타 저작인격권을 침해할 수 있는 변경',
-        ],
-      },
-    }
-  );
-
-  // 비밀유지
-  const [enableConfidentiality, setEnableConfidentiality] = useState(!!protectionClauses?.confidentiality);
-  const [confidentiality, setConfidentiality] = useState<ConfidentialityTerms>(
-    protectionClauses?.confidentiality || {
-      scope: [
-        '본 계약의 내용 및 대금',
-        '작업 과정에서 알게 된 상대방의 영업 비밀',
-        '미공개 작품 및 아이디어',
-      ],
-      duration: 2,
-      exceptions: ['공개된 정보가 된 경우', '법원이나 수사기관의 요청', '당사자의 서면 동의'],
-    }
-  );
-
-  // Toast 및 적용 상태 관리
-  const [showToast, setShowToast] = useState(false);
-  const [isApplied, setIsApplied] = useState(false);
-
-  const markAsModified = () => {
-    if (isApplied) {
-      setIsApplied(false);
-    }
+  // ✅ 부모로부터 받은 상태 직접 사용 (내부 state 제거)
+  const enableCredit = !!protectionClauses?.creditAttribution;
+  const credit: CreditTerms = protectionClauses?.creditAttribution || {
+    displayMethod: 'text',
+    displayPosition: 'end',
+    displayContent: `${getFieldName(field)} 작업: ${artistName || '[창작자명]'}`,
+    onlineDisplay: true,
+    penaltyForOmission: true,
   };
 
-  const handleApply = () => {
+  const enableModification = !!protectionClauses?.modificationRights;
+  const modification: ModificationTerms = protectionClauses?.modificationRights || {
+    minorModifications: {
+      count: revisions && revisions !== 'unlimited' ? revisions : 3,
+      free: true,
+    },
+    additionalModifications: {
+      pricePerModification: additionalRevisionFee || 0,
+    },
+    substantialChanges: {
+      requiresConsent: true,
+      definition: [
+        '작품의 주제, 메시지, 스타일의 근본적 변경',
+        '작품 일부의 삭제 또는 추가',
+        '기타 저작인격권을 침해할 수 있는 변경',
+      ],
+    },
+  };
+
+  const enableConfidentiality = !!protectionClauses?.confidentiality;
+  const confidentiality: ConfidentialityTerms = protectionClauses?.confidentiality || {
+    scope: [
+      '본 계약의 내용 및 대금',
+      '작업 과정에서 알게 된 상대방의 영업 비밀',
+      '미공개 작품 및 아이디어',
+    ],
+    duration: 2,
+    exceptions: ['공개된 정보가 된 경우', '법원이나 수사기관의 요청', '당사자의 서면 동의'],
+  };
+
+  // ✅ 변경 시 즉시 onUpdate 호출 (데이터 손실 방지)
+  const updateProtection = (updates: Partial<ProtectionClauses>) => {
     const newProtectionClauses: ProtectionClauses = {
       creditAttribution: enableCredit ? credit : undefined,
       modificationRights: enableModification ? modification : undefined,
       confidentiality: enableConfidentiality ? confidentiality : undefined,
+      ...updates,
     };
-
     onUpdate({ protectionClauses: newProtectionClauses });
-    setIsApplied(true);
-    setShowToast(true);
   };
 
   return (
@@ -131,10 +110,7 @@ export default function Step08Protection({
               <input
                 type="checkbox"
                 checked={enableCredit}
-                onChange={(e) => {
-                  setEnableCredit(e.target.checked);
-                  markAsModified();
-                }}
+                onChange={(e) => updateProtection({ creditAttribution: e.target.checked ? credit : undefined })}
                 className="w-5 h-5"
               />
               <span className="text-sm font-medium">포함</span>
@@ -147,10 +123,7 @@ export default function Step08Protection({
                 <label className="block text-sm font-medium text-gray-700 mb-2">표시 내용</label>
                 <Input
                   value={credit.displayContent}
-                  onChange={(value) => {
-                    setCredit({ ...credit, displayContent: value });
-                    markAsModified();
-                  }}
+                  onChange={(value) => updateProtection({ creditAttribution: { ...credit, displayContent: value } })}
                   placeholder={`예: ${getFieldName(field)} 작업: ${artistName || '[창작자명]'}`}
                 />
               </div>
@@ -160,10 +133,7 @@ export default function Step08Protection({
                   <label className="block text-sm font-medium text-gray-700 mb-2">표시 위치</label>
                   <select
                     value={credit.displayPosition}
-                    onChange={(e) => {
-                      setCredit({ ...credit, displayPosition: e.target.value as any });
-                      markAsModified();
-                    }}
+                    onChange={(e) => updateProtection({ creditAttribution: { ...credit, displayPosition: e.target.value as any } })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   >
                     <option value="start">시작 부분</option>
@@ -176,10 +146,7 @@ export default function Step08Protection({
                   <label className="block text-sm font-medium text-gray-700 mb-2">표시 방법</label>
                   <select
                     value={credit.displayMethod}
-                    onChange={(e) => {
-                      setCredit({ ...credit, displayMethod: e.target.value as any });
-                      markAsModified();
-                    }}
+                    onChange={(e) => updateProtection({ creditAttribution: { ...credit, displayMethod: e.target.value as any } })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   >
                     <option value="text">텍스트</option>
@@ -193,10 +160,7 @@ export default function Step08Protection({
                 <input
                   type="checkbox"
                   checked={credit.onlineDisplay}
-                  onChange={(e) => {
-                    setCredit({ ...credit, onlineDisplay: e.target.checked });
-                    markAsModified();
-                  }}
+                  onChange={(e) => updateProtection({ creditAttribution: { ...credit, onlineDisplay: e.target.checked } })}
                   className="w-4 h-4"
                 />
                 <span className="text-sm">온라인 게시 시에도 동일하게 표시</span>
@@ -206,10 +170,7 @@ export default function Step08Protection({
                 <input
                   type="checkbox"
                   checked={credit.penaltyForOmission}
-                  onChange={(e) => {
-                    setCredit({ ...credit, penaltyForOmission: e.target.checked });
-                    markAsModified();
-                  }}
+                  onChange={(e) => updateProtection({ creditAttribution: { ...credit, penaltyForOmission: e.target.checked } })}
                   className="w-4 h-4"
                 />
                 <span className="text-sm">크레딧 누락 시 손해배상 청구 가능</span>
@@ -234,10 +195,7 @@ export default function Step08Protection({
               <input
                 type="checkbox"
                 checked={enableModification}
-                onChange={(e) => {
-                  setEnableModification(e.target.checked);
-                  markAsModified();
-                }}
+                onChange={(e) => updateProtection({ modificationRights: e.target.checked ? modification : undefined })}
                 className="w-5 h-5"
               />
               <span className="text-sm font-medium">포함</span>
@@ -252,16 +210,15 @@ export default function Step08Protection({
                   <input
                     type="number"
                     value={modification.minorModifications.count}
-                    onChange={(e) => {
-                      setModification({
+                    onChange={(e) => updateProtection({
+                      modificationRights: {
                         ...modification,
                         minorModifications: {
                           ...modification.minorModifications,
                           count: Number(e.target.value),
                         },
-                      });
-                      markAsModified();
-                    }}
+                      }
+                    })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     placeholder="예: 3"
                   />
@@ -272,15 +229,14 @@ export default function Step08Protection({
                   <input
                     type="number"
                     value={modification.additionalModifications.pricePerModification}
-                    onChange={(e) => {
-                      setModification({
+                    onChange={(e) => updateProtection({
+                      modificationRights: {
                         ...modification,
                         additionalModifications: {
                           pricePerModification: Number(e.target.value),
                         },
-                      });
-                      markAsModified();
-                    }}
+                      }
+                    })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     placeholder="예: 50000"
                   />
@@ -292,16 +248,15 @@ export default function Step08Protection({
                   <input
                     type="checkbox"
                     checked={modification.substantialChanges.requiresConsent}
-                    onChange={(e) => {
-                      setModification({
+                    onChange={(e) => updateProtection({
+                      modificationRights: {
                         ...modification,
                         substantialChanges: {
                           ...modification.substantialChanges,
                           requiresConsent: e.target.checked,
                         },
-                      });
-                      markAsModified();
-                    }}
+                      }
+                    })}
                     className="w-4 h-4"
                   />
                   <span className="text-sm font-medium text-gray-900">
@@ -332,10 +287,7 @@ export default function Step08Protection({
               <input
                 type="checkbox"
                 checked={enableConfidentiality}
-                onChange={(e) => {
-                  setEnableConfidentiality(e.target.checked);
-                  markAsModified();
-                }}
+                onChange={(e) => updateProtection({ confidentiality: e.target.checked ? confidentiality : undefined })}
                 className="w-5 h-5"
               />
               <span className="text-sm font-medium">포함</span>
@@ -352,10 +304,7 @@ export default function Step08Protection({
                   <input
                     type="number"
                     value={confidentiality.duration}
-                    onChange={(e) => {
-                      setConfidentiality({ ...confidentiality, duration: Number(e.target.value) });
-                      markAsModified();
-                    }}
+                    onChange={(e) => updateProtection({ confidentiality: { ...confidentiality, duration: Number(e.target.value) } })}
                     className="w-24 px-3 py-2 border border-gray-300 rounded-lg"
                     min="1"
                     max="10"
@@ -380,20 +329,6 @@ export default function Step08Protection({
         </div>
       </Card>
 
-      {/* 적용 버튼 */}
-      <div className="flex justify-end gap-3 pt-4 border-t">
-        <Button onClick={handleApply} disabled={isApplied}>
-          {isApplied ? (
-            <>
-              <Check size={20} />
-              적용 완료
-            </>
-          ) : (
-            '보호 조항 적용'
-          )}
-        </Button>
-      </div>
-
       {/* 안내 메시지 */}
       <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
         <p className="text-sm text-blue-800">
@@ -401,16 +336,6 @@ export default function Step08Protection({
           포트폴리오 사용과 저작인격권 보호에 매우 중요합니다!
         </p>
       </div>
-
-      {/* Toast 알림 */}
-      {showToast && (
-        <Toast
-          message="✅ 보호 조항이 저장되었어요!"
-          type="success"
-          duration={3000}
-          onClose={() => setShowToast(false)}
-        />
-      )}
     </div>
   );
 }

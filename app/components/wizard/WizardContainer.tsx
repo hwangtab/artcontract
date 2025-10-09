@@ -51,6 +51,20 @@ export default function WizardContainer() {
   const [generatedContract, setGeneratedContract] = useState<GeneratedContract | null>(null);
   const [showResetModal, setShowResetModal] = useState(false);
 
+  // ✅ AI 챗봇 열렸을 때 배경 스크롤 방지
+  React.useEffect(() => {
+    if (isOpen) {
+      // 원래 overflow 값 저장
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+
+      return () => {
+        // 원래 값으로 복원
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   useProactiveAlerts({ currentStep, formData, addProactiveMessage });
 
   const handleGenerateContract = async () => {
@@ -252,7 +266,7 @@ export default function WizardContainer() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Progress Bar */}
         <div className="mb-8">
@@ -280,7 +294,7 @@ export default function WizardContainer() {
         </div>
 
         {/* Step Content */}
-        <div className="bg-white rounded-2xl shadow-sm p-8 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm p-4 md:p-8 mb-6">
           {renderStep()}
         </div>
 

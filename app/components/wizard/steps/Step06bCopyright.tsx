@@ -1,10 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Card from '../../shared/Card';
-import Button from '../../shared/Button';
-import Toast from '../../shared/Toast';
-import { Shield, AlertTriangle, Info, Check } from 'lucide-react';
+import { Shield, AlertTriangle, Info } from 'lucide-react';
 import { CopyrightTerms } from '@/types/contract';
 
 interface Step06bCopyrightProps {
@@ -13,42 +11,27 @@ interface Step06bCopyrightProps {
 }
 
 export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCopyrightProps) {
-  const [selectedRightsType, setSelectedRightsType] = useState<CopyrightTerms['rightsType']>(
-    copyrightTerms?.rightsType || 'non_exclusive_license'
-  );
-
-  const [economicRights, setEconomicRights] = useState(
-    copyrightTerms?.economicRights || {
-      reproduction: true,
-      distribution: true,
-      publicPerformance: false,
-      publicTransmission: false,
-      exhibition: false,
-      rental: false,
-    }
-  );
-
-  const [derivativeWorks, setDerivativeWorks] = useState(
-    copyrightTerms?.derivativeWorks || {
-      included: false,
-      separateNegotiation: true,
-      additionalFee: undefined,
-    }
-  );
-
-  const [usagePeriod, setUsagePeriod] = useState(
-    copyrightTerms?.usagePeriod || {
-      start: new Date(),
-      end: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-      perpetual: false,
-    }
-  );
-
-  const [usageRegion, setUsageRegion] = useState(copyrightTerms?.usageRegion || '대한민국');
-
-  // ✅ UX 개선: 적용 상태 및 토스트
-  const [isApplied, setIsApplied] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+  // ✅ 부모로부터 받은 상태 직접 사용 (내부 state 제거)
+  const selectedRightsType = copyrightTerms?.rightsType || 'non_exclusive_license';
+  const economicRights = copyrightTerms?.economicRights || {
+    reproduction: true,
+    distribution: true,
+    publicPerformance: false,
+    publicTransmission: false,
+    exhibition: false,
+    rental: false,
+  };
+  const derivativeWorks = copyrightTerms?.derivativeWorks || {
+    included: false,
+    separateNegotiation: true,
+    additionalFee: undefined,
+  };
+  const usagePeriod = copyrightTerms?.usagePeriod || {
+    start: new Date(),
+    end: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+    perpetual: false,
+  };
+  const usageRegion = copyrightTerms?.usageRegion || '대한민국';
 
   const rightsTypes = [
     {
@@ -87,7 +70,8 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
     },
   ];
 
-  const handleApply = () => {
+  // ✅ 변경 시 즉시 onUpdate 호출 (데이터 손실 방지)
+  const updateCopyright = (updates: Partial<CopyrightTerms>) => {
     const newCopyrightTerms: CopyrightTerms = {
       economicRights,
       moralRights: {
@@ -100,18 +84,10 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
       usagePeriod,
       usageRegion,
       usageMedia: ['온라인', '인쇄물'],
+      ...updates,
     };
-
     onUpdate({ copyrightTerms: newCopyrightTerms });
-
-    // ✅ UX 개선: 적용 피드백
-    setIsApplied(true);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
   };
-
-  // ✅ 입력 변경 시 재적용 필요 상태로 변경
-  const markAsModified = () => setIsApplied(false);
 
   return (
     <div className="space-y-6">
@@ -147,10 +123,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <Card
               key={type.id}
               selected={selectedRightsType === type.id}
-              onClick={() => {
-                setSelectedRightsType(type.id);
-                setIsApplied(false);
-              }}
+              onClick={() => updateCopyright({ rightsType: type.id })}
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -193,10 +166,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="checkbox"
               checked={economicRights.reproduction}
-              onChange={(e) => {
-                setEconomicRights({ ...economicRights, reproduction: e.target.checked });
-                setIsApplied(false);
-              }}
+              onChange={(e) => updateCopyright({ economicRights: { ...economicRights, reproduction: e.target.checked } })}
               className="w-4 h-4"
             />
             <div className="flex-1">
@@ -209,10 +179,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="checkbox"
               checked={economicRights.distribution}
-              onChange={(e) => {
-                setEconomicRights({ ...economicRights, distribution: e.target.checked });
-                markAsModified();
-              }}
+              onChange={(e) => updateCopyright({ economicRights: { ...economicRights, distribution: e.target.checked } })}
               className="w-4 h-4"
             />
             <div className="flex-1">
@@ -225,7 +192,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="checkbox"
               checked={economicRights.publicPerformance}
-              onChange={(e) => { setEconomicRights({ ...economicRights, publicPerformance: e.target.checked }); markAsModified(); }}
+              onChange={(e) => updateCopyright({ economicRights: { ...economicRights, publicPerformance: e.target.checked } })}
               className="w-4 h-4"
             />
             <div className="flex-1">
@@ -238,7 +205,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="checkbox"
               checked={economicRights.publicTransmission}
-              onChange={(e) => { setEconomicRights({ ...economicRights, publicTransmission: e.target.checked }); markAsModified(); }}
+              onChange={(e) => updateCopyright({ economicRights: { ...economicRights, publicTransmission: e.target.checked } })}
               className="w-4 h-4"
             />
             <div className="flex-1">
@@ -251,7 +218,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="checkbox"
               checked={economicRights.exhibition}
-              onChange={(e) => { setEconomicRights({ ...economicRights, exhibition: e.target.checked }); markAsModified(); }}
+              onChange={(e) => updateCopyright({ economicRights: { ...economicRights, exhibition: e.target.checked } })}
               className="w-4 h-4"
             />
             <div className="flex-1">
@@ -264,7 +231,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="checkbox"
               checked={economicRights.rental}
-              onChange={(e) => { setEconomicRights({ ...economicRights, rental: e.target.checked }); markAsModified(); }}
+              onChange={(e) => updateCopyright({ economicRights: { ...economicRights, rental: e.target.checked } })}
               className="w-4 h-4"
             />
             <div className="flex-1">
@@ -294,7 +261,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="radio"
               checked={derivativeWorks.separateNegotiation && !derivativeWorks.included}
-              onChange={() => { setDerivativeWorks({ included: false, separateNegotiation: true }); markAsModified(); }}
+              onChange={() => updateCopyright({ derivativeWorks: { included: false, separateNegotiation: true } })}
               className="w-4 h-4"
             />
             <div>
@@ -307,7 +274,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
             <input
               type="radio"
               checked={derivativeWorks.included}
-              onChange={() => { setDerivativeWorks({ ...derivativeWorks, included: true, separateNegotiation: false }); markAsModified(); }}
+              onChange={() => updateCopyright({ derivativeWorks: { ...derivativeWorks, included: true, separateNegotiation: false } })}
               className="w-4 h-4"
             />
             <div>
@@ -324,7 +291,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
               <input
                 type="number"
                 value={derivativeWorks.additionalFee || ''}
-                onChange={(e) => setDerivativeWorks({ ...derivativeWorks, additionalFee: Number(e.target.value) })}
+                onChange={(e) => updateCopyright({ derivativeWorks: { ...derivativeWorks, additionalFee: Number(e.target.value) } })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 placeholder="예: 500000"
               />
@@ -341,7 +308,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
           <input
             type="checkbox"
             checked={usagePeriod.perpetual}
-            onChange={(e) => { setUsagePeriod({ ...usagePeriod, perpetual: e.target.checked }); markAsModified(); }}
+            onChange={(e) => updateCopyright({ usagePeriod: { ...usagePeriod, perpetual: e.target.checked } })}
             className="w-4 h-4"
           />
           <span className="font-medium">무기한 사용</span>
@@ -354,7 +321,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
               <input
                 type="date"
                 value={usagePeriod.start.toISOString().split('T')[0]}
-                onChange={(e) => setUsagePeriod({ ...usagePeriod, start: new Date(e.target.value + 'T00:00:00') })}
+                onChange={(e) => updateCopyright({ usagePeriod: { ...usagePeriod, start: new Date(e.target.value + 'T00:00:00') } })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
@@ -363,7 +330,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
               <input
                 type="date"
                 value={usagePeriod.end.toISOString().split('T')[0]}
-                onChange={(e) => setUsagePeriod({ ...usagePeriod, end: new Date(e.target.value + 'T00:00:00') })}
+                onChange={(e) => updateCopyright({ usagePeriod: { ...usagePeriod, end: new Date(e.target.value + 'T00:00:00') } })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
@@ -376,7 +343,7 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
         <h3 className="text-lg font-semibold text-gray-900">5. 사용 지역</h3>
         <select
           value={usageRegion}
-          onChange={(e) => { setUsageRegion(e.target.value); markAsModified(); }}
+          onChange={(e) => updateCopyright({ usageRegion: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
         >
           <option value="대한민국">대한민국</option>
@@ -384,33 +351,6 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
           <option value="전세계">전세계</option>
         </select>
       </div>
-
-      {/* 적용 버튼 */}
-      <div className="flex justify-end gap-3 pt-4 border-t">
-        <Button
-          onClick={handleApply}
-          variant={isApplied ? 'secondary' : 'primary'}
-          disabled={isApplied}
-        >
-          {isApplied ? (
-            <>
-              <Check size={18} />
-              <span>적용 완료</span>
-            </>
-          ) : (
-            '저작권 설정 적용'
-          )}
-        </Button>
-      </div>
-
-      {/* ✅ 토스트 메시지 */}
-      {showToast && (
-        <Toast
-          message="✅ 저작권 설정이 저장되었어요!"
-          type="success"
-          onClose={() => setShowToast(false)}
-        />
-      )}
 
       {/* 안내 메시지 */}
       <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">

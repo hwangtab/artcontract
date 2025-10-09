@@ -19,7 +19,7 @@ export default function Card({
   hover = true,
   ariaLabel,
 }: CardProps) {
-  const baseClasses = 'rounded-xl border-2 p-6 transition-all duration-200';
+  const baseClasses = 'rounded-xl border-2 p-4 md:p-6 transition-all duration-200';
   const hoverClasses = hover ? 'hover:border-primary-500 hover:shadow-md cursor-pointer' : '';
   const selectedClasses = selected
     ? 'border-primary-500 bg-primary-50 shadow-lg'

@@ -38,7 +38,8 @@ export default function AssistantButton({
       `}
       style={{
         // iOS Safe Area 고려
-        bottom: 'max(1.25rem, env(safe-area-inset-bottom, 0px) + 0.5rem)',
+        bottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))',
+        left: 'calc(1.5rem + env(safe-area-inset-left, 0px))',
       }}
       aria-label={isOpen ? 'AI 도우미 닫기' : 'AI 도우미 열기'}
     >
