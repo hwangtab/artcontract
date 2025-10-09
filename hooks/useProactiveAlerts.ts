@@ -104,6 +104,13 @@ export function useProactiveAlerts({ currentStep, formData, addProactiveMessage 
     if (currentStep >= 4 && formData.timeline?.deadline) {
       const deadline = new Date(formData.timeline.deadline);
       const today = new Date();
+
+      // ✅ Invalid Date 체크 (AI가 잘못된 날짜 형식을 전달할 경우 방어)
+      if (isNaN(deadline.getTime())) {
+        console.warn('Invalid deadline date:', formData.timeline.deadline);
+        return; // 크래시 방지
+      }
+
       const daysUntilDeadline = Math.floor((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
       if (daysUntilDeadline <= 1) {

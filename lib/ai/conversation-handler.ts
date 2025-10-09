@@ -29,6 +29,16 @@ export async function handleConversation(
       })),
     });
 
+    // ✅ AI 응답 검증: timeline.deadline 유효성 체크
+    if (response.formUpdates?.timeline?.deadline) {
+      const deadline = new Date(response.formUpdates.timeline.deadline);
+      if (isNaN(deadline.getTime())) {
+        console.warn('AI returned invalid deadline:', response.formUpdates.timeline.deadline);
+        // 잘못된 날짜는 제거
+        delete response.formUpdates.timeline.deadline;
+      }
+    }
+
     return {
       message: response.message,
       formUpdates: response.formUpdates,
