@@ -267,15 +267,15 @@ export default function WizardContainer() {
           </div>
           <div
             role="progressbar"
-            aria-valuenow={currentStep}
+            aria-valuenow={completeness}
             aria-valuemin={0}
-            aria-valuemax={totalSteps}
-            aria-valuetext={`진행률: ${completeness}%, ${currentStep}단계 / ${totalSteps}단계`}
+            aria-valuemax={100}
+            aria-valuetext={`진행률: ${completeness}%, ${currentStep + 1}단계 / ${totalSteps}단계`}
             className="w-full h-2 bg-gray-200 rounded-full overflow-hidden"
           >
             <div
               className="h-full bg-primary-500 transition-all duration-300"
-              style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+              style={{ width: `${completeness}%` }}
             />
           </div>
         </div>
