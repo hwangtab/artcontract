@@ -1,4 +1,5 @@
 import { EnhancedContractFormData, ContractFormData, Warning } from '@/types/contract';
+import { WIZARD_STEP_NUMBERS } from '@/lib/constants';
 
 export interface RiskDetectionResult {
   riskLevel: 'low' | 'medium' | 'high' | 'critical';
@@ -195,8 +196,8 @@ export function detectContractRisks(
 
   // ========== HIGH: 금액 관련 위험 ==========
 
-  // ✅ Step 5 이상에서만 금액 경고 표시
-  if (currentStep === undefined || currentStep >= 5) {
+  // ✅ Step PAYMENT 이상에서만 금액 경고 표시
+  if (currentStep === undefined || currentStep >= WIZARD_STEP_NUMBERS.PAYMENT) {
     if (amount === undefined) {
       warnings.push({
         id: 'no_payment',
@@ -310,12 +311,12 @@ export function detectContractRisks(
         relatedField: 'payment.amount',
       });
     }
-  } // ✅ Step 5 조건 끝
+  } // ✅ Step PAYMENT 조건 끝
 
   // ========== HIGH: 수정 횟수 관련 ==========
 
-  // ✅ Step 6 이상에서만 수정 횟수 경고 표시
-  if (currentStep === undefined || currentStep >= 6) {
+  // ✅ Step REVISIONS 이상에서만 수정 횟수 경고 표시
+  if (currentStep === undefined || currentStep >= WIZARD_STEP_NUMBERS.REVISIONS) {
     // 10. 무제한 수정
     if (formData.revisions === 'unlimited') {
     warnings.push({
@@ -374,12 +375,12 @@ export function detectContractRisks(
       relatedField: 'additionalRevisionFee',
     });
     }
-  } // ✅ Step 6 조건 끝
+  } // ✅ Step REVISIONS 조건 끝
 
   // ========== MEDIUM: 일정 관련 ==========
 
-  // ✅ Step 4 이상에서만 일정 경고 표시
-  if ((currentStep === undefined || currentStep >= 4) && formData.timeline?.deadline) {
+  // ✅ Step TIMELINE 이상에서만 일정 경고 표시
+  if ((currentStep === undefined || currentStep >= WIZARD_STEP_NUMBERS.TIMELINE) && formData.timeline?.deadline) {
     const deadline = formData.timeline.deadline;
     const today = new Date();
     const diffDays = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -428,8 +429,8 @@ export function detectContractRisks(
 
   // ========== MEDIUM: 보호 조항 누락 ==========
 
-  // ✅ Step 9 이상에서만 크레딧 조항 경고 표시
-  if ((currentStep === undefined || currentStep >= 9) && !enhanced.protectionClauses?.creditAttribution) {
+  // ✅ Step PROTECTION 이상에서만 크레딧 조항 경고 표시
+  if ((currentStep === undefined || currentStep >= WIZARD_STEP_NUMBERS.PROTECTION) && !enhanced.protectionClauses?.creditAttribution) {
     warnings.push({
       id: 'no_credit_clause',
       severity: 'info',
@@ -442,9 +443,9 @@ export function detectContractRisks(
     });
   }
 
-  // ✅ Step 8 이상에서만 사용 범위 경고 표시
+  // ✅ Step USAGE_SCOPE 이상에서만 사용 범위 경고 표시
   // 18. 사용 범위 미정
-  if ((currentStep === undefined || currentStep >= 8) && (!formData.usageScope || formData.usageScope.length === 0)) {
+  if ((currentStep === undefined || currentStep >= WIZARD_STEP_NUMBERS.USAGE_SCOPE) && (!formData.usageScope || formData.usageScope.length === 0)) {
     if (!enhanced.copyrightTerms) {
       warnings.push({
         id: 'no_usage_scope',
@@ -460,7 +461,7 @@ export function detectContractRisks(
   }
 
   // 19. 사용 범위 무제한
-  if ((currentStep === undefined || currentStep >= 8) && formData.usageScope?.includes('unlimited')) {
+  if ((currentStep === undefined || currentStep >= WIZARD_STEP_NUMBERS.USAGE_SCOPE) && formData.usageScope?.includes('unlimited')) {
     warnings.push({
       id: 'unlimited_usage',
       severity: 'warning',
@@ -473,9 +474,9 @@ export function detectContractRisks(
     });
   }
 
-  // ✅ Step 3 이상에서만 클라이언트 정보 경고 표시
+  // ✅ Step CLIENT_INFO 이상에서만 클라이언트 정보 경고 표시
   // 20. 클라이언트 정보 없음
-  if ((currentStep === undefined || currentStep >= 3) && !formData.clientName) {
+  if ((currentStep === undefined || currentStep >= WIZARD_STEP_NUMBERS.CLIENT_INFO) && !formData.clientName) {
     warnings.push({
       id: 'no_client_info',
       severity: 'warning',

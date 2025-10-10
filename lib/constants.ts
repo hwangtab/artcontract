@@ -67,3 +67,18 @@ export const CURRENCY = {
   KRW: 'KRW',
   SYMBOL: '₩',
 } as const;
+
+// 마법사 단계 번호
+export const WIZARD_STEP_NUMBERS = {
+  ARTIST_INFO: 0,
+  FIELD_SELECTION: 1,
+  WORK_DETAIL: 2,
+  CLIENT_INFO: 3,
+  TIMELINE: 4,
+  PAYMENT: 5,
+  REVISIONS: 6,
+  COPYRIGHT: 7,
+  USAGE_SCOPE: 8,
+  PROTECTION: 9,
+  FINAL_CHECK: 10,
+} as const;

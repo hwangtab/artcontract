@@ -81,7 +81,11 @@ export default function Step03ClientType({
                   onClick={() => onUpdate({ clientType: aiAnalysis.clientType, clientName, clientContact })}
                   disabled={clientType === aiAnalysis.clientType}
                 >
-                  {clientType === aiAnalysis.clientType ? '✓ 적용됨' : '이 정보로 자동 채우기'}
+                  {clientType === aiAnalysis.clientType
+                    ? '✓ 적용됨'
+                    : clientType && clientType !== aiAnalysis.clientType
+                    ? `AI 추천으로 변경 (${getClientTypeLabel(aiAnalysis.clientType)})`
+                    : `AI 추천 적용 (${getClientTypeLabel(aiAnalysis.clientType)})`}
                 </Button>
               </div>
             </div>
