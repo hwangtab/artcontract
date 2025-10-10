@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import Input from '../../shared/Input';
 import Button from '../../shared/Button';
 import AIRecommendationBanner from '../../shared/AIRecommendationBanner';
@@ -28,14 +28,6 @@ export default function Step05Payment({
   const [amountInput, setAmountInput] = useState(amount ? amount.toString() : '');
   const [depositInput, setDepositInput] = useState(deposit ? deposit.toString() : '');
   const [lastCoachedBand, setLastCoachedBand] = useState<string | null>(null);
-
-  useEffect(() => {
-    setAmountInput(amount ? amount.toString() : '');
-  }, [amount]);
-
-  useEffect(() => {
-    setDepositInput(deposit ? deposit.toString() : '');
-  }, [deposit]);
 
   const itemsTotal = useMemo(() => {
     if (!workItems || workItems.length === 0) return 0;

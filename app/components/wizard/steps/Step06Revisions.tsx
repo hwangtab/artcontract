@@ -8,6 +8,7 @@ import WarningBanner from '../../shared/WarningBanner';
 import AIRecommendationBanner from '../../shared/AIRecommendationBanner';
 import { AlertTriangle, Sparkles } from 'lucide-react';
 import { WorkAnalysis } from '@/types/contract';
+import { formatCurrency, parseKoreanCurrency } from '@/lib/utils/currency-format';
 
 interface Step06Props {
   revisions?: number | 'unlimited' | null;
@@ -119,8 +120,8 @@ export default function Step06Revisions({
 
   const handleFeeChange = (value: string) => {
     setFeeInput(value);
-    const num = parseInt(value.replace(/[^\d]/g, ''), 10);
-    if (!isNaN(num)) {
+    const num = parseKoreanCurrency(value);
+    if (num !== undefined) {
       onUpdate(revisions, num);
     } else {
       onUpdate(revisions, undefined);
@@ -244,11 +245,11 @@ export default function Step06Revisions({
             <h3 className="font-semibold text-gray-900 mb-4">추가 수정 비용 (선택사항)</h3>
             <Input
               label="추가 수정 시 회당 비용"
-              type="number"
+              type="text"
               value={feeInput}
               onChange={handleFeeChange}
-              placeholder="예: 100000"
-              helper="정수만 입력하세요 (정해진 횟수 초과 시 받을 비용)"
+              placeholder="예: 10만원, 5만, 100000"
+              helper="'만원', '억원' 단위 사용 가능 (정해진 횟수 초과 시 받을 비용)"
             />
             <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
               <p className="text-sm text-blue-800">
