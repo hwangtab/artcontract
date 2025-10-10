@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useWizard } from '@/hooks/useWizard';
 import { useAIAssistant } from '@/hooks/useAIAssistant';
 import { useProactiveAlerts } from '@/hooks/useProactiveAlerts';
@@ -44,7 +44,8 @@ export default function WizardContainer() {
 
   useProactiveAlerts({ currentStep, formData, addProactiveMessage });
 
-  const handleGenerateContract = async () => {
+  // ✅ useCallback으로 감싸서 함수 재생성 방지 (React.memo 최적화)
+  const handleGenerateContract = useCallback(async () => {
     // 템플릿 가져오기
     try {
       // ✅ 타임아웃 설정
@@ -80,7 +81,7 @@ export default function WizardContainer() {
 
       addProactiveMessage(errorMsg, 'danger');
     }
-  };
+  }, [formData, addProactiveMessage]);
 
   const handleEditContract = () => {
     setGeneratedContract(null);
