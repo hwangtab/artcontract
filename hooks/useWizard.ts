@@ -129,11 +129,8 @@ export function useWizard() {
   // 이전 단계
   const prevStep = useCallback((onRequestReset?: () => void) => {
     setState((prev) => {
-      // Step0에서 뒤로가기: 리셋 요청
+      // ✅ Step0에서는 아무 동작도 하지 않음 (버튼이 비활성화되어 있어야 함)
       if (prev.currentStep === 0) {
-        if (onRequestReset) {
-          onRequestReset(); // WizardContainer가 모달 표시
-        }
         return prev;
       }
 
@@ -144,7 +141,7 @@ export function useWizard() {
       return {
         ...prev,
         currentStep: prevStep,
-        canGoPrev: true,  // 항상 뒤로 갈 수 있음
+        canGoPrev: prevStep > 0,  // ✅ 이전 단계가 0보다 크면 true
         canGoNext: true,
         isComplete: false,
         formData: {

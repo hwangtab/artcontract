@@ -86,6 +86,9 @@ export default function Step01FieldSelection({ selectedField, subField, selected
       // "기타"는 단독 선택 (다른 항목과 함께 선택 불가)
       if (current.includes('기타')) {
         onSubFieldsChange?.([]);
+        // ✅ Ghost state 방지: 기타 선택 해제 시 입력값도 초기화
+        setCustomSubField('');
+        onSubFieldChange?.('');
       } else {
         onSubFieldsChange?.(['기타']);
         setCustomSubField('');
