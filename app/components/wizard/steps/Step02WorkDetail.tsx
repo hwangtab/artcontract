@@ -192,9 +192,9 @@ export default function Step02WorkDetail({
     const trimmed = value.trim();
 
     // ✅ UX 개선: 분석 결과를 즉시 삭제하지 않고 "만료됨" 상태로 표시
-    if (analysisResult && !isAnalysisOutdated) {
-      setIsAnalysisOutdated(true);
-      setIsAnalysisApplied(false); // ✅ 내용 변경 시 적용 상태 초기화
+    if (analysisResult) {
+      if (!isAnalysisOutdated) setIsAnalysisOutdated(true);
+      if (isAnalysisApplied) setIsAnalysisApplied(false); // ✅ 적용된 경우만 초기화
     }
 
     onUpdate({
@@ -364,11 +364,12 @@ export default function Step02WorkDetail({
 
   // ✅ 메인 함수: useWorkAnalysis 훅 사용
   const performAIAnalysis = async () => {
+    setIsAnalysisApplied(false); // ✅ analyze 호출 전에 먼저 초기화 (실패 시에도 보장)
+
     const result = await analyze(descriptionInput);
 
     if (result) {
       setIsAnalysisOutdated(false); // ✅ 새로운 분석 결과는 최신 상태
-      setIsAnalysisApplied(false); // ✅ 새 분석 결과는 아직 적용되지 않음
 
       // ✅ 분석 완료 후 결과로 자동 스크롤
       setTimeout(() => {
@@ -379,7 +380,7 @@ export default function Step02WorkDetail({
 
   // ✅ 새로운 함수: AI 분석 결과 적용
   const applyAnalysisResults = () => {
-    if (!analysisResult) return;
+    if (!analysisResult || isAnalysisApplied) return; // ✅ 중복 적용 방지
 
     populateWorkItems(analysisResult);
     populateNextSteps(analysisResult);
@@ -715,24 +716,30 @@ export default function Step02WorkDetail({
             )}
 
             {/* ✅ AI 추천 적용 버튼 */}
-            {!isAnalysisOutdated && (
-              <div className="mt-4 pt-4 border-t border-primary-200">
-                <Button
-                  variant={isAnalysisApplied ? "secondary" : "primary"}
-                  size="medium"
-                  onClick={applyAnalysisResults}
-                  disabled={isAnalysisApplied}
-                  className="w-full"
-                >
-                  {isAnalysisApplied ? '✓ AI 추천이 적용되었어요' : '🎯 AI 추천으로 적용'}
-                </Button>
-                {!isAnalysisApplied && (
-                  <p className="text-xs text-gray-600 mt-2 text-center">
-                    💡 이 분석 결과를 작업 항목과 다음 단계에 자동으로 채워넣어요
-                  </p>
-                )}
-              </div>
-            )}
+            <div className="mt-4 pt-4 border-t border-primary-200">
+              <Button
+                variant={isAnalysisApplied ? "secondary" : isAnalysisOutdated ? "secondary" : "primary"}
+                size="medium"
+                onClick={applyAnalysisResults}
+                disabled={isAnalysisApplied}
+                className="w-full"
+              >
+                {isAnalysisApplied
+                  ? '✓ AI 추천이 적용되었어요'
+                  : isAnalysisOutdated
+                  ? '⚠️ 예전 분석 결과 적용 (재분석 권장)'
+                  : '🎯 AI 추천으로 적용'
+                }
+              </Button>
+              {!isAnalysisApplied && (
+                <p className="text-xs text-gray-600 mt-2 text-center">
+                  {isAnalysisOutdated
+                    ? '⚠️ 작업 설명이 변경되었어요. 재분석 후 적용을 권장해요'
+                    : '💡 이 분석 결과를 작업 항목과 다음 단계에 자동으로 채워넣어요'
+                  }
+                </p>
+              )}
+            </div>
           </div>
         )}
       </div>
