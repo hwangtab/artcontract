@@ -16,7 +16,7 @@ interface InputProps {
   className?: string;
 }
 
-export default function Input({
+const Input = function Input({
   label,
   value,
   onChange,
@@ -74,4 +74,7 @@ export default function Input({
       )}
     </div>
   );
-}
+};
+
+// ✅ React.memo로 불필요한 리렌더링 방지
+export default React.memo(Input);

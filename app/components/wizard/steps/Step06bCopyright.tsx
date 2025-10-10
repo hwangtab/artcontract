@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '../../shared/Card';
 import { Shield, AlertTriangle, Info } from 'lucide-react';
 import { CopyrightTerms } from '@/types/contract';
@@ -10,28 +10,62 @@ interface Step06bCopyrightProps {
   onUpdate: (data: { copyrightTerms: CopyrightTerms }) => void;
 }
 
-export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCopyrightProps) {
-  // ✅ 부모로부터 받은 상태 직접 사용 (내부 state 제거)
-  const selectedRightsType = copyrightTerms?.rightsType || 'non_exclusive_license';
-  const economicRights = copyrightTerms?.economicRights || {
+// ✅ 기본 저작권 조건
+const defaultCopyrightTerms: CopyrightTerms = {
+  rightsType: 'non_exclusive_license',
+  economicRights: {
     reproduction: true,
     distribution: true,
     publicPerformance: false,
     publicTransmission: false,
     exhibition: false,
     rental: false,
-  };
-  const derivativeWorks = copyrightTerms?.derivativeWorks || {
+  },
+  moralRights: {
+    attribution: true,
+    integrity: true,
+    disclosure: true,
+  },
+  derivativeWorks: {
     included: false,
     separateNegotiation: true,
     additionalFee: undefined,
-  };
-  const usagePeriod = copyrightTerms?.usagePeriod || {
+  },
+  usagePeriod: {
     start: new Date(),
     end: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
     perpetual: false,
-  };
-  const usageRegion = copyrightTerms?.usageRegion || '대한민국';
+  },
+  usageRegion: '대한민국',
+  usageMedia: ['온라인', '인쇄물'],
+};
+
+export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCopyrightProps) {
+  // ✅ 로컬 상태로 관리 (성능 개선)
+  const [localCopyright, setLocalCopyright] = useState<CopyrightTerms>(
+    copyrightTerms || defaultCopyrightTerms
+  );
+
+  // ✅ props 변경 시 로컬 상태 동기화
+  useEffect(() => {
+    if (copyrightTerms) {
+      setLocalCopyright(copyrightTerms);
+    }
+  }, [copyrightTerms]);
+
+  // ✅ 컴포넌트 unmount 시 변경사항 일괄 저장
+  useEffect(() => {
+    return () => {
+      onUpdate({ copyrightTerms: localCopyright });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localCopyright]);
+
+  const selectedRightsType = localCopyright.rightsType;
+  const economicRights = localCopyright.economicRights;
+  const derivativeWorks = localCopyright.derivativeWorks;
+  const usagePeriod = localCopyright.usagePeriod || defaultCopyrightTerms.usagePeriod!;
+  const usageRegion = localCopyright.usageRegion || defaultCopyrightTerms.usageRegion!;
 
   const rightsTypes = [
     {
@@ -70,23 +104,12 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
     },
   ];
 
-  // ✅ 변경 시 즉시 onUpdate 호출 (데이터 손실 방지)
+  // ✅ 로컬 상태만 업데이트 (unmount 시 일괄 저장)
   const updateCopyright = (updates: Partial<CopyrightTerms>) => {
-    const newCopyrightTerms: CopyrightTerms = {
-      economicRights,
-      moralRights: {
-        attribution: true,
-        integrity: true,
-        disclosure: true,
-      },
-      derivativeWorks,
-      rightsType: selectedRightsType,
-      usagePeriod,
-      usageRegion,
-      usageMedia: ['온라인', '인쇄물'],
+    setLocalCopyright(prev => ({
+      ...prev,
       ...updates,
-    };
-    onUpdate({ copyrightTerms: newCopyrightTerms });
+    }));
   };
 
   return (

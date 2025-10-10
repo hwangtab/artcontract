@@ -11,7 +11,7 @@ interface CardProps {
   ariaLabel?: string;
 }
 
-export default function Card({
+const Card = function Card({
   children,
   className = '',
   onClick,
@@ -67,4 +67,7 @@ export default function Card({
       {children}
     </Component>
   );
-}
+};
+
+// ✅ React.memo로 불필요한 리렌더링 방지
+export default React.memo(Card);

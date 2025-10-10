@@ -57,4 +57,5 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   );
 });
 
-export default Button;
+// ✅ React.memo로 불필요한 리렌더링 방지
+export default React.memo(Button);
