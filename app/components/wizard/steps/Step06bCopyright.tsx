@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Card from '../../shared/Card';
 import { Shield, AlertTriangle, Info } from 'lucide-react';
 import { CopyrightTerms } from '@/types/contract';
@@ -10,8 +10,8 @@ interface Step06bCopyrightProps {
   onUpdate: (data: { copyrightTerms: CopyrightTerms }) => void;
 }
 
-// ✅ 기본 저작권 조건
-const defaultCopyrightTerms: CopyrightTerms = {
+// ✅ 기본 저작권 조건 (함수로 변경하여 매번 새 Date 객체 생성)
+const getDefaultCopyrightTerms = (): CopyrightTerms => ({
   rightsType: 'non_exclusive_license',
   economicRights: {
     reproduction: true,
@@ -33,18 +33,24 @@ const defaultCopyrightTerms: CopyrightTerms = {
   },
   usagePeriod: {
     start: new Date(),
-    end: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+    end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1년 후
     perpetual: false,
   },
   usageRegion: '대한민국',
   usageMedia: ['온라인', '인쇄물'],
-};
+});
 
 export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCopyrightProps) {
   // ✅ 로컬 상태로 관리 (성능 개선)
   const [localCopyright, setLocalCopyright] = useState<CopyrightTerms>(
-    copyrightTerms || defaultCopyrightTerms
+    () => copyrightTerms || getDefaultCopyrightTerms()
   );
+
+  // ✅ 최신 localCopyright 값을 추적 (cleanup에서 사용)
+  const localCopyrightRef = useRef(localCopyright);
+  useEffect(() => {
+    localCopyrightRef.current = localCopyright;
+  }, [localCopyright]);
 
   // ✅ props 변경 시 로컬 상태 동기화
   useEffect(() => {
@@ -53,19 +59,20 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
     }
   }, [copyrightTerms]);
 
-  // ✅ 컴포넌트 unmount 시 변경사항 일괄 저장
+  // ✅ 컴포넌트 unmount 시에만 변경사항 일괄 저장
   useEffect(() => {
     return () => {
-      onUpdate({ copyrightTerms: localCopyright });
+      onUpdate({ copyrightTerms: localCopyrightRef.current });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localCopyright]);
+  }, []); // ✅ 빈 배열: unmount 시에만 실행
 
+  const defaultTerms = getDefaultCopyrightTerms();
   const selectedRightsType = localCopyright.rightsType;
   const economicRights = localCopyright.economicRights;
   const derivativeWorks = localCopyright.derivativeWorks;
-  const usagePeriod = localCopyright.usagePeriod || defaultCopyrightTerms.usagePeriod!;
-  const usageRegion = localCopyright.usageRegion || defaultCopyrightTerms.usageRegion!;
+  const usagePeriod = localCopyright.usagePeriod || defaultTerms.usagePeriod!;
+  const usageRegion = localCopyright.usageRegion || defaultTerms.usageRegion!;
 
   const rightsTypes = [
     {
