@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useWizard } from '@/hooks/useWizard';
 import { useAIAssistant } from '@/hooks/useAIAssistant';
 import { useProactiveAlerts } from '@/hooks/useProactiveAlerts';
@@ -12,7 +12,7 @@ import AssistantWindow from '../ai-assistant/AssistantWindow';
 import ConfirmModal from '../shared/ConfirmModal';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { generateContract } from '@/lib/contract/generator';
-import { GeneratedContract, ContractTemplate } from '@/types/contract';
+import { GeneratedContract, ContractTemplate, ArtField } from '@/types/contract';
 import { TIMEOUTS } from '@/lib/constants';
 
 export default function WizardContainer() {
@@ -104,23 +104,23 @@ export default function WizardContainer() {
     setShowResetModal(false);
   };
 
-  // ✅ 각 단계별 props 매핑 함수
-  const getStepProps = (step: number) => {
-    switch (step) {
+  // ✅ 각 단계별 props를 useMemo로 메모이제이션 (React.memo 최적화)
+  const stepProps = useMemo(() => {
+    switch (currentStep) {
       case 0:
         return {
           artistName: formData.artistName,
           artistContact: formData.artistContact,
           artistIdNumber: formData.artistIdNumber,
           artistAddress: formData.artistAddress,
-          onUpdate: (data: any) => updateFormData(data),
+          onUpdate: updateFormData,
         };
       case 1:
         return {
           selectedField: formData.field,
           subField: formData.subField,
           selectedSubFields: formData.selectedSubFields,
-          onSelect: (field: any) => updateFormData({ field }),
+          onSelect: (field: ArtField) => updateFormData({ field }),
           onSubFieldChange: (subField: string) => updateFormData({ subField }),
           onSubFieldsChange: (selectedSubFields: string[]) => updateFormData({ selectedSubFields }),
         };
@@ -133,7 +133,7 @@ export default function WizardContainer() {
           aiAnalysis: formData.aiAnalysis,
           selectedSubFields: formData.selectedSubFields,
           subField: formData.subField,
-          onUpdate: (data: any) => updateFormData(data),
+          onUpdate: updateFormData,
         };
       case 3:
         return {
@@ -141,7 +141,7 @@ export default function WizardContainer() {
           clientName: formData.clientName,
           clientContact: formData.clientContact,
           aiAnalysis: formData.aiAnalysis,
-          onUpdate: (data: any) => updateFormData(data),
+          onUpdate: updateFormData,
         };
       case 4:
         return {
@@ -176,7 +176,7 @@ export default function WizardContainer() {
       case 7:
         return {
           copyrightTerms: formData.copyrightTerms,
-          onUpdate: (data: any) => updateFormData(data),
+          onUpdate: updateFormData,
         };
       case 8:
         return {
@@ -184,7 +184,7 @@ export default function WizardContainer() {
           commercialUse: formData.commercialUse,
           exclusiveRights: formData.exclusiveRights,
           aiAnalysis: formData.aiAnalysis,
-          onUpdate: (data: any) => updateFormData(data),
+          onUpdate: updateFormData,
         };
       case 9:
         return {
@@ -193,7 +193,7 @@ export default function WizardContainer() {
           field: formData.field,
           revisions: formData.revisions,
           additionalRevisionFee: formData.additionalRevisionFee,
-          onUpdate: (data: any) => updateFormData(data),
+          onUpdate: updateFormData,
         };
       case 10:
         return {
@@ -204,7 +204,7 @@ export default function WizardContainer() {
       default:
         return {};
     }
-  };
+  }, [currentStep, formData, updateFormData, goToStep, addProactiveMessage, handleGenerateContract]);
 
   // ✅ 동적 렌더링: wizardConfig 기반
   const renderStep = () => {
@@ -222,7 +222,6 @@ export default function WizardContainer() {
     }
 
     const StepComponent = stepConfig.component;
-    const stepProps = getStepProps(currentStep);
 
     return <StepComponent {...stepProps} />;
   };

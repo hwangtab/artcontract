@@ -10,6 +10,19 @@ interface Step06bCopyrightProps {
   onUpdate: (data: { copyrightTerms: CopyrightTerms }) => void;
 }
 
+// ✅ 날짜 헬퍼 함수 (시간대 안전하게 처리)
+const toYYYYMMDD = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const fromYYYYMMDD = (dateString: string): Date => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day); // 로컬 시간대 기준으로 안전하게 생성
+};
+
 // ✅ 기본 저작권 조건 (함수로 변경하여 매번 새 Date 객체 생성)
 const getDefaultCopyrightTerms = (): CopyrightTerms => ({
   rightsType: 'non_exclusive_license',
@@ -350,8 +363,8 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
               <label className="block text-sm font-medium text-gray-700 mb-1">시작일</label>
               <input
                 type="date"
-                value={usagePeriod.start.toISOString().split('T')[0]}
-                onChange={(e) => updateCopyright({ usagePeriod: { ...usagePeriod, start: new Date(e.target.value + 'T00:00:00') } })}
+                value={toYYYYMMDD(usagePeriod.start)}
+                onChange={(e) => updateCopyright({ usagePeriod: { ...usagePeriod, start: fromYYYYMMDD(e.target.value) } })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
@@ -359,8 +372,8 @@ export default function Step06bCopyright({ copyrightTerms, onUpdate }: Step06bCo
               <label className="block text-sm font-medium text-gray-700 mb-1">종료일</label>
               <input
                 type="date"
-                value={usagePeriod.end.toISOString().split('T')[0]}
-                onChange={(e) => updateCopyright({ usagePeriod: { ...usagePeriod, end: new Date(e.target.value + 'T00:00:00') } })}
+                value={toYYYYMMDD(usagePeriod.end)}
+                onChange={(e) => updateCopyright({ usagePeriod: { ...usagePeriod, end: fromYYYYMMDD(e.target.value) } })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
