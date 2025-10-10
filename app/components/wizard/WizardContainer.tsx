@@ -5,17 +5,7 @@ import { useWizard } from '@/hooks/useWizard';
 import { useAIAssistant } from '@/hooks/useAIAssistant';
 import { useProactiveAlerts } from '@/hooks/useProactiveAlerts';
 import Button from '../shared/Button';
-import Step00ArtistInfo from './steps/Step00ArtistInfo';
-import Step01FieldSelection from './steps/Step01FieldSelection';
-import Step02WorkDetail from './steps/Step02WorkDetail';
-import Step03ClientType from './steps/Step03ClientType';
-import Step04Timeline from './steps/Step04Timeline';
-import Step05Payment from './steps/Step05Payment';
-import Step06Revisions from './steps/Step06Revisions';
-import Step06bCopyright from './steps/Step06bCopyright';
-import Step07UsageScope from './steps/Step07UsageScope';
-import Step08Protection from './steps/Step08Protection';
-import Step08FinalCheck from './steps/Step08FinalCheck';
+import { WIZARD_STEPS } from './wizardConfig';
 import ContractResult from '../contract/ContractResult';
 import AssistantButton from '../ai-assistant/AssistantButton';
 import AssistantWindow from '../ai-assistant/AssistantWindow';
@@ -114,137 +104,127 @@ export default function WizardContainer() {
     setShowResetModal(false);
   };
 
-  const renderStep = () => {
-    switch (currentStep) {
+  // ✅ 각 단계별 props 매핑 함수
+  const getStepProps = (step: number) => {
+    switch (step) {
       case 0:
-        return (
-          <Step00ArtistInfo
-            artistName={formData.artistName}
-            artistContact={formData.artistContact}
-            artistIdNumber={formData.artistIdNumber}
-            artistAddress={formData.artistAddress}
-            onUpdate={(data) => updateFormData(data)}
-          />
-        );
+        return {
+          artistName: formData.artistName,
+          artistContact: formData.artistContact,
+          artistIdNumber: formData.artistIdNumber,
+          artistAddress: formData.artistAddress,
+          onUpdate: (data: any) => updateFormData(data),
+        };
       case 1:
-        return (
-          <Step01FieldSelection
-            selectedField={formData.field}
-            subField={formData.subField}
-            selectedSubFields={formData.selectedSubFields}
-            onSelect={(field) => updateFormData({ field })}
-            onSubFieldChange={(subField) => updateFormData({ subField })}
-            onSubFieldsChange={(selectedSubFields) => updateFormData({ selectedSubFields })}
-          />
-        );
+        return {
+          selectedField: formData.field,
+          subField: formData.subField,
+          selectedSubFields: formData.selectedSubFields,
+          onSelect: (field: any) => updateFormData({ field }),
+          onSubFieldChange: (subField: string) => updateFormData({ subField }),
+          onSubFieldsChange: (selectedSubFields: string[]) => updateFormData({ selectedSubFields }),
+        };
       case 2:
-        return (
-          <Step02WorkDetail
-            field={formData.field!}
-            workType={formData.workType}
-            workDescription={formData.workDescription}
-            workItems={formData.workItems}
-            aiAnalysis={formData.aiAnalysis}
-            selectedSubFields={formData.selectedSubFields}
-            subField={formData.subField}
-            onUpdate={(data) => updateFormData(data)}
-          />
-        );
+        return {
+          field: formData.field!,
+          workType: formData.workType,
+          workDescription: formData.workDescription,
+          workItems: formData.workItems,
+          aiAnalysis: formData.aiAnalysis,
+          selectedSubFields: formData.selectedSubFields,
+          subField: formData.subField,
+          onUpdate: (data: any) => updateFormData(data),
+        };
       case 3:
-        return (
-          <Step03ClientType
-            clientType={formData.clientType}
-            clientName={formData.clientName}
-            clientContact={formData.clientContact}
-            aiAnalysis={formData.aiAnalysis}
-            onUpdate={(data) => updateFormData(data)}
-          />
-        );
+        return {
+          clientType: formData.clientType,
+          clientName: formData.clientName,
+          clientContact: formData.clientContact,
+          aiAnalysis: formData.aiAnalysis,
+          onUpdate: (data: any) => updateFormData(data),
+        };
       case 4:
-        return (
-          <Step04Timeline
-            startDate={formData.timeline?.startDate}
-            deadline={formData.timeline?.deadline}
-            aiAnalysis={formData.aiAnalysis}
-            onUpdate={(startDate, deadline) =>
-              updateFormData({ timeline: { startDate, deadline } })
-            }
-            onAICoach={(message) => addProactiveMessage(message, 'info')}
-          />
-        );
+        return {
+          startDate: formData.timeline?.startDate,
+          deadline: formData.timeline?.deadline,
+          aiAnalysis: formData.aiAnalysis,
+          onUpdate: (startDate: Date | undefined, deadline: Date | undefined) =>
+            updateFormData({ timeline: { startDate, deadline } }),
+          onAICoach: (message: string) => addProactiveMessage(message, 'info'),
+        };
       case 5:
-        return (
-          <Step05Payment
-            amount={formData.payment?.amount}
-            deposit={formData.payment?.deposit}
-            onUpdate={(amount, deposit) =>
-              updateFormData({
-                payment: { ...formData.payment!, amount, deposit },
-              })
-            }
-            suggestedPriceRange={formData.aiAnalysis?.suggestedPriceRange}
-            onAICoach={(message) => addProactiveMessage(message, 'info')}
-            workItems={formData.workItems}
-          />
-        );
+        return {
+          amount: formData.payment?.amount,
+          deposit: formData.payment?.deposit,
+          onUpdate: (amount: number | undefined, deposit: number | undefined) =>
+            updateFormData({
+              payment: { ...formData.payment!, amount, deposit },
+            }),
+          suggestedPriceRange: formData.aiAnalysis?.suggestedPriceRange,
+          onAICoach: (message: string) => addProactiveMessage(message, 'info'),
+          workItems: formData.workItems,
+        };
       case 6:
-        return (
-          <Step06Revisions
-            revisions={formData.revisions}
-            additionalRevisionFee={formData.additionalRevisionFee}
-            aiAnalysis={formData.aiAnalysis}
-            onUpdate={(revisions, additionalFee) =>
-              updateFormData({ revisions, additionalRevisionFee: additionalFee })
-            }
-            onAICoach={(message) => addProactiveMessage(message, 'info')}
-          />
-        );
+        return {
+          revisions: formData.revisions,
+          additionalRevisionFee: formData.additionalRevisionFee,
+          aiAnalysis: formData.aiAnalysis,
+          onUpdate: (revisions: number | 'unlimited', additionalFee: number | undefined) =>
+            updateFormData({ revisions, additionalRevisionFee: additionalFee }),
+          onAICoach: (message: string) => addProactiveMessage(message, 'info'),
+        };
       case 7:
-        return (
-          <Step06bCopyright
-            copyrightTerms={formData.copyrightTerms}
-            onUpdate={(data) => updateFormData(data)}
-          />
-        );
+        return {
+          copyrightTerms: formData.copyrightTerms,
+          onUpdate: (data: any) => updateFormData(data),
+        };
       case 8:
-        return (
-          <Step07UsageScope
-            usageScope={formData.usageScope}
-            commercialUse={formData.commercialUse}
-            exclusiveRights={formData.exclusiveRights}
-            aiAnalysis={formData.aiAnalysis}
-            onUpdate={(data) => updateFormData(data)}
-          />
-        );
+        return {
+          usageScope: formData.usageScope,
+          commercialUse: formData.commercialUse,
+          exclusiveRights: formData.exclusiveRights,
+          aiAnalysis: formData.aiAnalysis,
+          onUpdate: (data: any) => updateFormData(data),
+        };
       case 9:
-        return (
-          <Step08Protection
-            protectionClauses={formData.protectionClauses}
-            artistName={formData.artistName}
-            field={formData.field}
-            revisions={formData.revisions}
-            additionalRevisionFee={formData.additionalRevisionFee}
-            onUpdate={(data) => updateFormData(data)}
-          />
-        );
+        return {
+          protectionClauses: formData.protectionClauses,
+          artistName: formData.artistName,
+          field: formData.field,
+          revisions: formData.revisions,
+          additionalRevisionFee: formData.additionalRevisionFee,
+          onUpdate: (data: any) => updateFormData(data),
+        };
       case 10:
-        return (
-          <Step08FinalCheck
-            formData={formData}
-            onEdit={goToStep}
-            onGenerate={handleGenerateContract}
-          />
-        );
+        return {
+          formData: formData,
+          onEdit: goToStep,
+          onGenerate: handleGenerateContract,
+        };
       default:
-        return (
-          <div className="text-center p-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Step {currentStep}
-            </h2>
-            <p className="text-gray-600">잘못된 단계입니다</p>
-          </div>
-        );
+        return {};
     }
+  };
+
+  // ✅ 동적 렌더링: wizardConfig 기반
+  const renderStep = () => {
+    const stepConfig = WIZARD_STEPS[currentStep];
+
+    if (!stepConfig) {
+      return (
+        <div className="text-center p-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Step {currentStep}
+          </h2>
+          <p className="text-gray-600">잘못된 단계입니다</p>
+        </div>
+      );
+    }
+
+    const StepComponent = stepConfig.component;
+    const stepProps = getStepProps(currentStep);
+
+    return <StepComponent {...stepProps} />;
   };
 
   // 계약서 생성 완료되면 결과 화면 보여주기

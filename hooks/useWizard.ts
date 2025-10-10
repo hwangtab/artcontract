@@ -4,8 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { ContractFormData, EnhancedContractFormData } from '@/types/contract';
 import { WizardState } from '@/types/wizard';
 import { detectContractRisks } from '@/lib/contract/risk-detector';
-
-const TOTAL_STEPS = 11;  // Step0 + 10단계 (저작권, 보호 조항 추가)
+import { TOTAL_STEPS } from '@/app/components/wizard/wizardConfig';
 
 const initialFormData: EnhancedContractFormData = {
   currentStep: 0,  // Step0부터 시작
