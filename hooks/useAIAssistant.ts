@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { AIMessage, AIContext } from '@/types/ai-assistant';
 import { ContractFormData } from '@/types/contract';
 
@@ -14,6 +14,14 @@ export function useAIAssistant() {
   // - addedMessageIds: 동일 메시지의 UI 중복 렌더링 방지 (AI 응답 & proactive 메시지용)
   const processingRef = useRef<Set<string>>(new Set());
   const addedMessageIds = useRef<Set<string>>(new Set());
+
+  // ✅ Race Condition 방지: 최신 messages 상태를 ref로 관리
+  const messagesRef = useRef<AIMessage[]>([]);
+
+  // messages 상태가 변경될 때마다 ref도 업데이트
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   const openAssistant = useCallback(() => {
     setIsOpen(true);
@@ -57,12 +65,8 @@ export function useAIAssistant() {
       }
       addedMessageIds.current.add(userMessage.id);
 
-      let currentMessages: AIMessage[] = [];
-
-      setMessages((prev) => {
-        currentMessages = [...prev, userMessage];
-        return currentMessages;
-      });
+      // ✅ 함수형 업데이트로 최신 상태 보장하며 메시지 추가
+      setMessages((prev) => [...prev, userMessage]);
 
       setIsLoading(true);
 
@@ -71,7 +75,9 @@ export function useAIAssistant() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-        // API 호출 - 현재 메시지 목록을 변수에서 참조
+        // ✅ API 호출 시 ref를 사용하여 최신 메시지 목록 전달 (Race Condition 방지)
+        const conversationHistory = [...messagesRef.current, userMessage];
+
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -80,7 +86,7 @@ export function useAIAssistant() {
             context: {
               currentStep,
               formData,
-              conversationHistory: currentMessages,
+              conversationHistory,
             },
           }),
           signal: controller.signal,

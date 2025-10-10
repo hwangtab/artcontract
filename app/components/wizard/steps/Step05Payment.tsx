@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Input from '../../shared/Input';
 import Button from '../../shared/Button';
 import AIRecommendationBanner from '../../shared/AIRecommendationBanner';
-import { formatCurrency } from '@/lib/utils/currency-format';
+import { formatCurrency, parseKoreanCurrency } from '@/lib/utils/currency-format';
 import { WorkItem } from '@/types/contract';
 import { PAYMENT_THRESHOLDS } from '@/lib/constants';
 
@@ -50,22 +50,14 @@ export default function Step05Payment({
 
   const handleAmountChange = (value: string) => {
     setAmountInput(value);
-    const numValue = parseInt(value.replace(/[^\d]/g, ''), 10);
-    if (!isNaN(numValue)) {
-      onUpdate(numValue, deposit);
-    } else {
-      onUpdate(undefined, deposit);
-    }
+    const numValue = parseKoreanCurrency(value);
+    onUpdate(numValue, deposit);
   };
 
   const handleDepositChange = (value: string) => {
     setDepositInput(value);
-    const numValue = parseInt(value.replace(/[^\d]/g, ''), 10);
-    if (!isNaN(numValue)) {
-      onUpdate(amount, numValue);
-    } else {
-      onUpdate(amount, undefined);
-    }
+    const numValue = parseKoreanCurrency(value);
+    onUpdate(amount, numValue);
   };
 
   const setSuggestedAmount = (value: number) => {
@@ -121,12 +113,12 @@ export default function Step05Payment({
         <div>
           <Input
             label="💰 작업 금액"
-            type="number"
+            type="text"
             value={amountInput}
             onChange={handleAmountChange}
             onBlur={handleAmountBlur}
-            placeholder="500000"
-            helper="정수만 입력하세요 (소수점 제외)"
+            placeholder="예: 100만원, 50만, 500000"
+            helper="'만원', '억원' 단위 사용 가능"
             required
           />
         </div>
@@ -191,11 +183,11 @@ export default function Step05Payment({
           <div>
             <Input
               label="계약금 (선금)"
-              type="number"
+              type="text"
               value={depositInput}
               onChange={handleDepositChange}
-              placeholder="30-50% 추천"
-              helper={`${formatCurrency(Math.floor(amount * 0.3))} ~ ${formatCurrency(Math.floor(amount * 0.5))} 추천`}
+              placeholder="예: 30만원, 15만"
+              helper={`${formatCurrency(Math.floor(amount * 0.3))} ~ ${formatCurrency(Math.floor(amount * 0.5))} 추천 / '만원', '억원' 사용 가능`}
             />
           </div>
         )}

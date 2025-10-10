@@ -9,6 +9,7 @@ import ConfirmModal from '../../shared/ConfirmModal';
 import { ArtField, WorkAnalysis, WorkItem, EnhancedContractFormData } from '@/types/contract';
 import { Sparkles, Check, AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import { useWorkAnalysis } from '@/hooks/useWorkAnalysis';
+import { parseKoreanCurrency } from '@/lib/utils/currency-format';
 
 interface Step02Props {
   field: ArtField;
@@ -58,27 +59,6 @@ function createEmptyItem(title = ''): WorkItemDraft {
     unitPrice: undefined,
     deliverables: '',
   };
-}
-
-function toNumber(value?: string): number | undefined {
-  if (!value) return undefined;
-
-  // 쉼표 제거 후 parseFloat
-  const cleaned = value.replace(/,/g, '');
-
-  // ✅ 유효한 숫자 형식인지 정규식으로 검증 (1.2.3, 1a2 같은 잘못된 입력 방지)
-  if (!/^\d*\.?\d*$/.test(cleaned)) {
-    return undefined;
-  }
-
-  const parsed = parseFloat(cleaned);
-
-  // NaN 체크 + 유효한 숫자인지 확인
-  if (Number.isNaN(parsed) || !Number.isFinite(parsed)) {
-    return undefined;
-  }
-
-  return parsed;
 }
 
 export default function Step02WorkDetail({
@@ -566,20 +546,26 @@ export default function Step02WorkDetail({
                         label="수량"
                         type="number"
                         value={item.quantity?.toString() || ''}
-                        onChange={(value) => handleUpdateItem(item.id, { quantity: toNumber(value) })}
+                        onChange={(value) => {
+                          const parsed = value ? parseFloat(value.replace(/,/g, '')) : undefined;
+                          handleUpdateItem(item.id, { quantity: isNaN(parsed!) ? undefined : parsed });
+                        }}
                       />
                       <Input
                         label="단가 (원)"
-                        type="number"
+                        type="text"
                         value={item.unitPrice?.toString() || ''}
-                        onChange={(value) => handleUpdateItem(item.id, { unitPrice: toNumber(value) })}
+                        onChange={(value) => handleUpdateItem(item.id, { unitPrice: parseKoreanCurrency(value) })}
+                        placeholder="예: 100만원, 50만, 500000"
+                        helper="'만원', '억원' 단위 사용 가능"
                       />
                       <Input
                         label="소계 (자동 계산 가능)"
-                        type="number"
+                        type="text"
                         value={item.subtotal?.toString() || ''}
-                        onChange={(value) => handleUpdateItem(item.id, { subtotal: toNumber(value) })}
-                        helper="단가 × 수량 입력 시 자동 계산"
+                        onChange={(value) => handleUpdateItem(item.id, { subtotal: parseKoreanCurrency(value) })}
+                        placeholder="예: 100만원"
+                        helper="단가 × 수량 입력 시 자동 계산 / '만원', '억원' 사용 가능"
                       />
                     </div>
                   </div>
