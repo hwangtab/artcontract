@@ -79,6 +79,7 @@ export default function Step02WorkDetail({
     (workItems || []).map((item) => ({ ...item }))
   );
   const [isAnalysisOutdated, setIsAnalysisOutdated] = useState(false); // ✅ 분석 결과 만료 상태
+  const [isAnalysisApplied, setIsAnalysisApplied] = useState(false); // ✅ AI 결과 적용 여부
   const [showQuickOptions, setShowQuickOptions] = useState(false);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
 
@@ -193,6 +194,7 @@ export default function Step02WorkDetail({
     // ✅ UX 개선: 분석 결과를 즉시 삭제하지 않고 "만료됨" 상태로 표시
     if (analysisResult && !isAnalysisOutdated) {
       setIsAnalysisOutdated(true);
+      setIsAnalysisApplied(false); // ✅ 내용 변경 시 적용 상태 초기화
     }
 
     onUpdate({
@@ -366,14 +368,22 @@ export default function Step02WorkDetail({
 
     if (result) {
       setIsAnalysisOutdated(false); // ✅ 새로운 분석 결과는 최신 상태
-      populateWorkItems(result);
-      populateNextSteps(result);
+      setIsAnalysisApplied(false); // ✅ 새 분석 결과는 아직 적용되지 않음
 
       // ✅ 분석 완료 후 결과로 자동 스크롤
       setTimeout(() => {
         analysisResultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 100);
     }
+  };
+
+  // ✅ 새로운 함수: AI 분석 결과 적용
+  const applyAnalysisResults = () => {
+    if (!analysisResult) return;
+
+    populateWorkItems(analysisResult);
+    populateNextSteps(analysisResult);
+    setIsAnalysisApplied(true);
   };
 
   const handleConfirmDuplicate = () => {
@@ -701,6 +711,26 @@ export default function Step02WorkDetail({
                     </ul>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* ✅ AI 추천 적용 버튼 */}
+            {!isAnalysisOutdated && (
+              <div className="mt-4 pt-4 border-t border-primary-200">
+                <Button
+                  variant={isAnalysisApplied ? "secondary" : "primary"}
+                  size="medium"
+                  onClick={applyAnalysisResults}
+                  disabled={isAnalysisApplied}
+                  className="w-full"
+                >
+                  {isAnalysisApplied ? '✓ AI 추천이 적용되었어요' : '🎯 AI 추천으로 적용'}
+                </Button>
+                {!isAnalysisApplied && (
+                  <p className="text-xs text-gray-600 mt-2 text-center">
+                    💡 이 분석 결과를 작업 항목과 다음 단계에 자동으로 채워넣어요
+                  </p>
+                )}
               </div>
             )}
           </div>
