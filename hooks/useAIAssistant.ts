@@ -138,7 +138,19 @@ export function useAIAssistant() {
           throw new Error(data.error?.message || '응답 실패');
         }
       } catch (error) {
+        // ✅ 상세 에러 로깅 (디버깅용)
         console.error('AI chat error:', error);
+        console.error('Request context:', {
+          content,
+          currentStep,
+          formData: {
+            field: formData.field,
+            workType: formData.workType,
+            workDescription: formData.workDescription,
+            artistName: formData.artistName,
+            clientName: formData.clientName,
+          },
+        });
 
         // ✅ AbortError (타임아웃) 처리
         let errorContent = '죄송해요, 잠시 문제가 있어요. 다시 한번 물어봐 주세요! 😊';

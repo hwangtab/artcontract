@@ -41,8 +41,18 @@ export async function handleConversation(
     // AI가 스스로 주제 이탈로 판단하고 표준 거절 메시지를 생성했는지 확인
     const standardRefusalMessage = '죄송해요, 저는 **예술가 계약서 작성 전문 도우미**예요!';
 
+    // ✅ AI 응답 검증 3: 단계별 주제 이탈 거짓 양성 방지
     if (response.message.startsWith(standardRefusalMessage)) {
-      // AI가 이미 주제 이탈로 판단하여 거절 메시지 생성함
+      // Step 2: 작업 내용 설명은 계약서의 핵심이므로 거절 금지
+      if (context.currentStep === 2) {
+        console.warn('False positive detected: User is describing work in Step 2, but AI refused');
+        return {
+          message: "구체적으로 어떤 작업을 하시는지 조금 더 자세히 설명해주시겠어요? 😊",
+          confidence: 0.5,
+        };
+      }
+
+      // 기타 단계: AI의 판단 신뢰
       console.warn('Off-topic detected by AI itself');
       return {
         message: response.message, // AI가 생성한 거절 메시지 사용
