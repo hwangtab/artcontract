@@ -91,6 +91,11 @@ export default function Step02WorkDetail({
   // ✅ AI 분석 결과 자동 스크롤을 위한 ref
   const analysisResultRef = React.useRef<HTMLDivElement>(null);
 
+  // ✅ field 변경 시 initialLoadDone 리셋 (작업 분야 변경 대응)
+  useEffect(() => {
+    setInitialLoadDone(false);
+  }, [field]);
+
   // ✅ Step 1에서 선택한 작업들을 자동 로드 + 작업 설명 자동 생성
   useEffect(() => {
     if (!initialLoadDone) {
