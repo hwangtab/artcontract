@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { handleConversation } from '@/lib/ai/conversation-handler';
 import { ChatRequest, ChatResponse, ChatMessage } from '@/types/api';
 import { AIContext } from '@/types/ai-assistant';
-import { aiRateLimiter } from '@/lib/utils/rate-limiter';
 import { withApiHandler } from '@/lib/api/withApiHandler';
 
 async function handler(request: NextRequest): Promise<NextResponse> {
@@ -80,6 +79,6 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-export const POST = withApiHandler(handler, { rateLimiter: aiRateLimiter });
+export const POST = withApiHandler(handler);
 
 export const runtime = 'edge';

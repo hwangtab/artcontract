@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeWork } from '@/lib/ai/work-analyzer';
 import { AnalyzeWorkRequest, AnalyzeWorkResponse } from '@/types/api';
-import { aiRateLimiter } from '@/lib/utils/rate-limiter';
 import { withApiHandler } from '@/lib/api/withApiHandler';
 
 async function handler(request: NextRequest): Promise<NextResponse> {
@@ -66,6 +65,6 @@ async function handler(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-export const POST = withApiHandler(handler, { rateLimiter: aiRateLimiter });
+export const POST = withApiHandler(handler);
 
 export const runtime = 'edge';
