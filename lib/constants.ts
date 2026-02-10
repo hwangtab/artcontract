@@ -7,7 +7,7 @@ export const API_PATHS = {
 
 // AI 모델 상수
 export const AI_MODELS = {
-  DEFAULT: 'google/gemini-2.0-flash-exp:free',
+  DEFAULT: 'z-ai/glm-4.5-air:free',
   OPENROUTER_URL: 'https://openrouter.ai/api/v1/chat/completions',
 } as const;
 
