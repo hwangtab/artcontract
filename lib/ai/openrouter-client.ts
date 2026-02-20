@@ -47,39 +47,64 @@ export class OpenRouterClient {
       maxTokens?: number;
     }
   ): Promise<string> {
-    try {
-      const response = await fetch(OPENROUTER_API_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://artcontract.vercel.app',
-          'X-Title': '한국스마트협동조합 예술인 계약서 작성 도우미',
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          messages,
-          temperature: options?.temperature || 0.7,
-          max_tokens: options?.maxTokens || 2000,
-        }),
-      });
+    const MAX_RETRIES = 2;
+    const RETRYABLE_STATUS_CODES = [429, 502, 503, 504];
 
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`OpenRouter API error: ${response.status} - ${error}`);
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const response = await fetch(OPENROUTER_API_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://artcontract.vercel.app',
+            'X-Title': '한국스마트협동조합 예술인 계약서 작성 도우미',
+          },
+          body: JSON.stringify({
+            model: MODEL,
+            messages,
+            temperature: options?.temperature || 0.7,
+            max_tokens: options?.maxTokens || 2000,
+          }),
+        });
+
+        // ✅ 재시도 가능한 에러인 경우 백오프 후 재시도
+        if (!response.ok) {
+          const errorText = await response.text();
+
+          if (RETRYABLE_STATUS_CODES.includes(response.status) && attempt < MAX_RETRIES) {
+            const delayMs = (attempt + 1) * 1000; // 1초, 2초 백오프
+            console.warn(`OpenRouter API error ${response.status}, retrying in ${delayMs}ms (attempt ${attempt + 1}/${MAX_RETRIES})...`);
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+            continue;
+          }
+
+          throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
+        }
+
+        const data: OpenRouterResponse = await response.json();
+
+        if (!data.choices || data.choices.length === 0) {
+          throw new Error('No response from AI');
+        }
+
+        return data.choices[0].message.content;
+      } catch (error) {
+        // 네트워크 에러 등 fetch 자체 실패 시에도 재시도
+        if (attempt < MAX_RETRIES && !(error instanceof Error && error.message.startsWith('OpenRouter API error:'))) {
+          const delayMs = (attempt + 1) * 1000;
+          console.warn(`OpenRouter fetch error, retrying in ${delayMs}ms (attempt ${attempt + 1}/${MAX_RETRIES})...`, error);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          continue;
+        }
+
+        console.error('OpenRouter API error:', error);
+        throw error;
       }
-
-      const data: OpenRouterResponse = await response.json();
-
-      if (!data.choices || data.choices.length === 0) {
-        throw new Error('No response from AI');
-      }
-
-      return data.choices[0].message.content;
-    } catch (error) {
-      console.error('OpenRouter API error:', error);
-      throw error;
     }
+
+    // 이론적으로 도달 불가, 타입 안전성을 위한 폴백
+    throw new Error('OpenRouter API: max retries exceeded');
   }
 
   async analyzeWork(field: string, userInput: string): Promise<any> {
@@ -111,13 +136,8 @@ export class OpenRouterClient {
 
 **Few-shot 학습 예시:**
 
-예시 1:
+예시 1 (복합 작업 + 클라이언트 + 금액 배분):
 입력: "조희정이라는 아티스트에게 작곡, 작사, 편곡, 녹음, 믹싱, 마스터링을 하고 300만원을 받아요"
-분석:
-- 작업: 작곡, 작사, 편곡, 녹음, 믹싱, 마스터링 (6개)
-- 클라이언트: "조희정" (개인 이름 → individual)
-- 총 금액: 300만원 = 3,000,000원
-- 각 작업 금액: 3,000,000 ÷ 6 = 500,000원
 출력:
 {
   "workType": "음악 앨범 제작 풀 패키지",
@@ -136,55 +156,12 @@ export class OpenRouterClient {
   "commercialUse": false,
   "usageScope": ["personal"],
   "complexity": "complex",
-  "riskFactors": [],
   "estimatedDays": 30,
-  "additionalClauses": [],
   "confidence": 0.95
 }
 
-예시 2:
-입력: "ABC회사에 로고 디자인과 명함 디자인 각각 50만원씩"
-출력:
-{
-  "workType": "브랜딩 디자인 패키지",
-  "workItems": [
-    {"title": "로고 디자인", "quantity": 1, "deliverables": "AI, PSD (원본 파일), JPG, PNG (최종 파일)", "estimatedPrice": 500000},
-    {"title": "명함 디자인", "quantity": 1, "deliverables": "AI, PSD (원본 파일), PDF (인쇄용)", "estimatedPrice": 500000}
-  ],
-  "clientName": "ABC회사",
-  "clientType": "small_business",
-  "totalAmount": 1000000,
-  "suggestedPriceRange": {"min": 1000000, "max": 1000000, "currency": "KRW"},
-  "commercialUse": true,
-  "usageScope": ["commercial", "print"],
-  "complexity": "medium",
-  "confidence": 0.9
-}
-
-예시 3:
-입력: "유튜브 영상 편집 5개"
-출력:
-{
-  "workType": "유튜브 영상 편집",
-  "workItems": [
-    {"title": "영상 편집", "description": "유튜브 영상 편집", "quantity": 5, "deliverables": "MP4 (1080p), 썸네일 JPG", "estimatedPrice": 150000}
-  ],
-  "clientType": "unknown",
-  "suggestedPriceRange": {"min": 500000, "max": 1000000, "currency": "KRW"},
-  "commercialUse": true,
-  "usageScope": ["online"],
-  "complexity": "medium",
-  "confidence": 0.7
-}
-
-예시 4:
+예시 2 (수량 + 단가 + 회사 클라이언트):
 입력: "김민수 대표님께 인스타그램 광고 이미지 10장, 각각 5만원씩입니다"
-분석:
-- 작업: 인스타그램 광고 이미지 (1종류)
-- 수량: 10장
-- 각 이미지 가격: 5만원 = 50,000원
-- 총 금액: 50,000 × 10 = 500,000원
-- 클라이언트: "김민수" (대표님 → small_business)
 출력:
 {
   "workType": "SNS 광고 이미지 제작",
@@ -200,58 +177,6 @@ export class OpenRouterClient {
   "complexity": "simple",
   "estimatedDays": 7,
   "confidence": 0.95
-}
-
-예시 5:
-입력: "작곡, 편곡, 믹싱을 각각 30만원씩, 2주 안에 완성"
-분석:
-- 작업: 작곡, 편곡, 믹싱 (3개)
-- 각 작업 가격: 30만원 = 300,000원
-- 총 금액: 300,000 × 3 = 900,000원
-- 마감: 2주 = 14일
-출력:
-{
-  "workType": "음악 제작 3종 패키지",
-  "workItems": [
-    {"title": "작곡", "description": "메인 테마 작곡", "quantity": 1, "deliverables": "WAV (24bit/48kHz), MP3 (320kbps), 악보 PDF", "estimatedPrice": 300000},
-    {"title": "편곡", "description": "악기 구성 및 편곡", "quantity": 1, "deliverables": "WAV (24bit/48kHz), 프로젝트 파일", "estimatedPrice": 300000},
-    {"title": "믹싱", "description": "트랙 밸런스 조정", "quantity": 1, "deliverables": "WAV (24bit/48kHz), MP3 (320kbps)", "estimatedPrice": 300000}
-  ],
-  "clientType": "unknown",
-  "totalAmount": 900000,
-  "suggestedPriceRange": {"min": 900000, "max": 900000, "currency": "KRW"},
-  "commercialUse": false,
-  "usageScope": ["personal"],
-  "complexity": "complex",
-  "estimatedDays": 14,
-  "additionalClauses": ["작업 기간이 짧으니 러시 요금을 고려하세요"],
-  "confidence": 0.9
-}
-
-예시 6:
-입력: "음악 앨범 제작"
-분석:
-- 작업: 음악 앨범 제작 (구체적 정보 없음)
-- **적극적 추론**: 앨범 제작 = 통상 1곡, 작곡/편곡/녹음/믹싱/마스터링 포함
-- 수량: 명시 안 됨 → 기본값 1
-- 금액: 명시 안 됨 → suggestedPriceRange 기반 추정
-- 납품물: 음악 분야 표준 형식 추론
-출력:
-{
-  "workType": "음악 앨범 제작",
-  "workItems": [
-    {"title": "음악 앨범 제작", "description": "작곡/편곡/녹음/믹싱/마스터링 포함", "quantity": 1, "deliverables": "WAV (24bit/48kHz), MP3 (320kbps), 프로젝트 파일", "estimatedPrice": 1500000}
-  ],
-  "clientType": "unknown",
-  "totalAmount": 1500000,
-  "suggestedPriceRange": {"min": 1000000, "max": 2500000, "currency": "KRW"},
-  "commercialUse": false,
-  "usageScope": ["personal"],
-  "complexity": "complex",
-  "riskFactors": ["금액 미명시", "작업 범위 불명확"],
-  "estimatedDays": 30,
-  "additionalClauses": ["정확한 작업 범위와 금액을 클라이언트와 확정하세요"],
-  "confidence": 0.6
 }
 
 이제 다음 입력을 분석하세요:
