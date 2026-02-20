@@ -1,5 +1,5 @@
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
+const DEFAULT_MODEL = 'z-ai/glm-4.5-air:free';
 const MODEL = process.env.OPENROUTER_MODEL || DEFAULT_MODEL;
 
 export interface OpenRouterMessage {
