@@ -7,7 +7,7 @@ export const API_PATHS = {
 
 // AI 모델 상수
 export const AI_MODELS = {
-  DEFAULT: 'z-ai/glm-4.5-air:free',
+  DEFAULT: 'meta-llama/llama-3.3-70b-instruct:free',
   OPENROUTER_URL: 'https://openrouter.ai/api/v1/chat/completions',
 } as const;
 

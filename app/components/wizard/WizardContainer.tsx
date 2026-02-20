@@ -314,7 +314,9 @@ export default function WizardContainer() {
                 }`}
               >
                 <p className="font-medium text-gray-900">{warning.message}</p>
-                <p className="text-sm text-gray-600 mt-1">{warning.suggestion}</p>
+                {warning.suggestion && (
+                  <p className="text-sm text-gray-600 mt-1">{warning.suggestion}</p>
+                )}
               </div>
             ))}
           </div>

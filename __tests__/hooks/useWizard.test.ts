@@ -86,14 +86,14 @@ describe('useWizard', () => {
       });
 
       expect(result.current.currentStep).toBe(10);
-      expect(result.current.isComplete).toBe(false);
+      expect(result.current.isComplete).toBe(true);
 
-      // Step 11로 이동 (마지막 단계)
+      // Step 10에서 nextStep 호출해도 더 이상 이동하지 않음
       act(() => {
         result.current.nextStep();
       });
 
-      expect(result.current.currentStep).toBe(11);
+      expect(result.current.currentStep).toBe(10);
       expect(result.current.isComplete).toBe(true);
     });
 
@@ -219,6 +219,7 @@ describe('useWizard', () => {
       const { result } = renderHook(() => useWizard());
 
       act(() => {
+        result.current.goToStep(6);
         result.current.updateFormData({
           revisions: 'unlimited',
         });
@@ -237,6 +238,7 @@ describe('useWizard', () => {
       const { result } = renderHook(() => useWizard());
 
       act(() => {
+        result.current.goToStep(5);
         result.current.updateFormData({
           payment: {
             amount: 0,
@@ -248,7 +250,7 @@ describe('useWizard', () => {
       expect(result.current.formData.riskLevel).toBe('high');
       expect(result.current.formData.warnings).toContainEqual(
         expect.objectContaining({
-          id: 'no_payment',
+          id: 'zero_payment',
           severity: 'danger',
         })
       );
@@ -365,10 +367,10 @@ describe('useWizard', () => {
         result.current.reset();
       });
 
-      expect(result.current.currentStep).toBe(1);
+      expect(result.current.currentStep).toBe(0);
       expect(result.current.formData.field).toBeUndefined();
       expect(result.current.completeness).toBe(0);
-      expect(result.current.visitedSteps).toEqual([1]);
+      expect(result.current.visitedSteps).toEqual([0]);
     });
   });
 

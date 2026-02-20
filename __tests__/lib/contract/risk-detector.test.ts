@@ -3,7 +3,7 @@ import { ContractFormData, EnhancedContractFormData } from '@/types/contract';
 
 describe('detectContractRisks', () => {
   describe('금액 관련 위험 감지', () => {
-    test('금액이 0원인 경우 no_payment 경고 발생', () => {
+    test('금액이 0원인 경우 zero_payment 경고 발생', () => {
       const formData: ContractFormData = {
         field: 'design',
         payment: { amount: 0, currency: 'KRW' },
@@ -13,7 +13,7 @@ describe('detectContractRisks', () => {
 
       expect(result.warnings).toContainEqual(
         expect.objectContaining({
-          id: 'no_payment',
+          id: 'zero_payment',
           severity: 'danger',
         })
       );

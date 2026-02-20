@@ -241,6 +241,7 @@ describe('generateContract', () => {
         field: 'design',
         enhancedPayment: {
           totalAmount: 3000000,
+          currency: 'KRW',
           installments: {
             downPayment: {
               amount: 900000,

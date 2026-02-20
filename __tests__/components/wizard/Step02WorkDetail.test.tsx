@@ -14,7 +14,7 @@ describe('Step02WorkDetail', () => {
   test('manual description update notifies parent', () => {
     const { getByPlaceholderText, handleUpdate } = setup();
 
-    const textarea = getByPlaceholderText(/싱글 앨범 제작을 맡았어요/);
+    const textarea = getByPlaceholderText(/작곡이 메인이지만 편곡, 믹싱, 마스터링도 함께 진행합니다/);
 
     fireEvent.change(textarea, { target: { value: '작곡과 편곡을 맡았습니다.' } });
 

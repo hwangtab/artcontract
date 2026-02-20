@@ -19,7 +19,7 @@ export function generateContract(
 
   if (isEnhanced) {
     // 표준계약서 형식 (13개 조항)
-    content = generateStandardContract(formData as EnhancedContractFormData);
+    content = generateStandardContract(formData as EnhancedContractFormData, template);
   } else {
     // 기존 간단한 형식 (하위 호환성)
     content = generateBasicContract(formData, template);
@@ -31,8 +31,8 @@ export function generateContract(
     template,
     content,
     createdAt: new Date(),
-    completeness: formData.completeness,
-    warnings: formData.warnings,
+    completeness: formData.completeness ?? 0,
+    warnings: formData.warnings ?? [],
   };
 }
 
@@ -49,7 +49,7 @@ function hasEnhancedFeatures(formData: ContractFormData): boolean {
 
 // ========== 표준계약서 생성 (13개 조항) ==========
 
-function generateStandardContract(formData: EnhancedContractFormData): string {
+function generateStandardContract(formData: EnhancedContractFormData, template: ContractTemplate): string {
   const fieldName = getFieldName(formData.field);
 
   let content = `# ${fieldName} 창작 계약서\n\n`;
@@ -82,6 +82,9 @@ function generateStandardContract(formData: EnhancedContractFormData): string {
   content += generateArticle14_PreparingLaw(formData);
   content += generateArticle15_AssignmentProhibition(formData);
   content += generateArticle16_NoticeMethod(formData);
+
+  // 법적 고지 (기본/표준 계약서 모두 동일하게 포함)
+  content += `## 법적 고지\n\n${template.legal_disclaimer}\n\n---\n\n`;
 
   // 서명란
   content += generateSignatureSection(formData);

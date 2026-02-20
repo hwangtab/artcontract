@@ -7,7 +7,7 @@ describe('Card Component', () => {
     const { container } = render(<Card>Test</Card>);
     const cardElement = container.firstChild as HTMLElement;
     expect(cardElement).toBeInTheDocument();
-    expect(cardElement).toHaveClass('rounded-xl border-2 p-6');
+    expect(cardElement).toHaveClass('rounded-xl border-2 p-4 md:p-6');
   });
 
   // 2. children rendering

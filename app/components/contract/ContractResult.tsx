@@ -93,7 +93,8 @@ export default function ContractResult({ contract, onEdit }: ContractResultProps
             <ul className="space-y-2">
               {contract.warnings.map((warning) => (
                 <li key={warning.id} className="text-sm text-gray-700">
-                  • {warning.message} → {warning.suggestion}
+                  • {warning.message}
+                  {warning.suggestion ? ` → ${warning.suggestion}` : ''}
                 </li>
               ))}
             </ul>

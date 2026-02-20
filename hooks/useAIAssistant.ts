@@ -71,9 +71,9 @@ export function useAIAssistant() {
       setIsLoading(true);
 
       try {
-        // ✅ 타임아웃 설정 (15초)
+        // ✅ 타임아웃 설정 (30초)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
 
         // ✅ API 호출 시 ref를 사용하여 최신 메시지 목록 전달 (Race Condition 방지)
         const conversationHistory = [...messagesRef.current, userMessage];

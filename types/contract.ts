@@ -90,10 +90,10 @@ export interface ContractFormData {
   specialConditions?: string;
 
   // 메타 데이터
-  currentStep: number;
-  completeness: number;
-  riskLevel: RiskLevel;
-  warnings: Warning[];
+  currentStep?: number;
+  completeness?: number;
+  riskLevel?: RiskLevel;
+  warnings?: Warning[];
 }
 
 // AI 분석 결과
@@ -128,7 +128,7 @@ export interface Warning {
   id: string;
   severity: 'info' | 'warning' | 'danger';
   message: string;
-  suggestion: string;
+  suggestion?: string;
   autoTrigger: boolean;
   dismissible: boolean;
   relatedField?: string;
@@ -136,11 +136,13 @@ export interface Warning {
 
 // 계약서 템플릿
 export interface ContractTemplate {
-  template_id: string;
+  template_id?: string;
+  id?: string;
   name: string;
-  description: string;
-  target_field: ArtField;
-  target_work_types: string[];
+  description?: string;
+  target_field?: ArtField;
+  field?: ArtField;
+  target_work_types?: string[];
   sections: {
     [key: string]: TemplateSection;
   };
@@ -195,9 +197,9 @@ export interface CopyrightTerms {
 
   // 저작인격권 (Moral Rights) - 항상 창작자 보유, 양도 불가
   moralRights: {
-    attribution: true;           // 성명표시권
-    integrity: true;             // 동일성유지권
-    disclosure: true;            // 공표권
+    attribution: boolean;        // 성명표시권
+    integrity: boolean;          // 동일성유지권
+    disclosure: boolean;         // 공표권
   };
 
   // 2차적저작물작성권 (Derivative Works)
@@ -234,14 +236,14 @@ export interface EnhancedPaymentTerms {
     downPayment?: {
       percentage: number;      // 계약금 비율 (10-30%)
       amount: number;
-      dueDate: 'immediately';  // 계약 즉시
+      dueDate?: 'immediately'; // 계약 즉시
     };
 
     midPayment?: {
       percentage: number;      // 중도금 비율 (30-50%)
       amount: number;
       milestone: string;       // 지급 조건
-      dueDate: Date;
+      dueDate?: Date;
     };
 
     finalPayment: {
@@ -288,6 +290,7 @@ export interface ModificationTerms {
     free: boolean;
   };
   additionalModifications: {
+    allowed?: boolean;
     pricePerModification: number;
   };
   substantialChanges: {
